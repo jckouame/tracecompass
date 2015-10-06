@@ -97,6 +97,14 @@
             name="%synchronization.view.name"
             restorable="true">
       </view>
+      <view
+            allowMultiple="false"
+            category="org.eclipse.linuxtools.tmf.ui.views.category"
+            class="org.eclipse.tracecompass.tmf.ui.patternStatus.PatternStatusView"
+            id="org.eclipse.tracecompass.tmf.ui.patternStatus"
+            name="XML Pattern Status View"
+            restorable="true">
+      </view>
    </extension>
    <extension
          point="org.eclipse.ui.editors">

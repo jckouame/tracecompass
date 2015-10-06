@@ -37,6 +37,7 @@ public class TmfXmlFsm {
     private final List<TmfXmlScenario> fScenarioList = new LinkedList<>();
     private final List<TmfXmlScenario> fNewScenariosList = new ArrayList<>();
     private final List<String> fPreconditions = new ArrayList<>();
+    private int fScenarioCount;
     private static final String REGEX = ":"; //$NON-NLS-1$
     private static final String SAVED_SPECIAL_FIELDS_ACTION_STRING = ISingleAction.SPECIAL_ACTION_PREFIX + ISingleAction.SAVE_SPECIAL_FIELD_STRING + ISingleAction.ACTION_SEPARATOR;
     private static final String CLEAR_SPECIAL_FIELDS_ACTION_STRINGS = ISingleAction.ACTION_SEPARATOR + ISingleAction.SPECIAL_ACTION_PREFIX + ISingleAction.CLEAR_SPECIAL_FIELD_STRING;
@@ -120,6 +121,7 @@ public class TmfXmlFsm {
             TmfXmlStateDefinition stateDefinition = modelFactory.createStateDefinition(element, fContainer);
             fStatesMap.put(stateDefinition.getName(), stateDefinition);
         }
+        fScenarioCount = 0;
     }
 
     /**
@@ -316,7 +318,7 @@ public class TmfXmlFsm {
      * @param eventHandler
      *            The event handler this fsm belongs
      */
-    public void startScenario(String parentFsmId, @Nullable ITmfEvent event, TmfXmlFilterEventHandler eventHandler) {
+    public void createScenario(String parentFsmId, @Nullable ITmfEvent event, TmfXmlFilterEventHandler eventHandler) {
         boolean toStart = false;
         // Check if we have the right to create a new scenario.
         // A new scenario can be created if it will be the first instance of the
@@ -332,7 +334,8 @@ public class TmfXmlFsm {
             }
             boolean oldStartNewScenario = fStartNewScenario;
             fStartNewScenario = false;
-            TmfXmlScenario scenario = new TmfXmlScenario(fId + SEPARATOR + fScenarioList.size(), eventHandler, fId, fContainer);
+            TmfXmlScenario scenario = new TmfXmlScenario(fId + SEPARATOR + fScenarioCount, eventHandler, fId, fContainer);
+            fScenarioCount++;
             fNewScenariosList.add(scenario);
             // if the scenario is started by the action "startFSM", it is
             // directly executed. No need to wait the next event.

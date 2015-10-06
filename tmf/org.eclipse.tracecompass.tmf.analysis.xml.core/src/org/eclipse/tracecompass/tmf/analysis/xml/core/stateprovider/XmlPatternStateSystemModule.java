@@ -25,6 +25,7 @@ import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
 import org.eclipse.tracecompass.tmf.core.exceptions.TmfTraceException;
 import org.eclipse.tracecompass.tmf.core.statesystem.ITmfStateProvider;
 import org.eclipse.tracecompass.tmf.core.statesystem.TmfStateSystemAnalysisModule;
+import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTraceManager;
 import org.w3c.dom.Element;
 
@@ -158,34 +159,37 @@ public class XmlPatternStateSystemModule extends TmfStateSystemAnalysisModule {
     }
 
     private void loadSynEvent(boolean writeFile, ITmfStateProvider provider) {
-        String dir = TmfTraceManager.getSupplementaryFileDir(getTrace());
-        fSynEventFilename = getName() + ".synEvent.dat"; //$NON-NLS-1$
-        final Path file = Paths.get(dir, fSynEventFilename);
-        if (writeFile) {
-            if (Files.exists(file)) {
-                try {
-                    Files.delete(file);
-                } catch (IOException e1) {
+        ITmfTrace trace = getTrace();
+        if (trace != null) {
+            String dir = TmfTraceManager.getSupplementaryFileDir(trace);
+            fSynEventFilename = getName() + ".synEvent.dat"; //$NON-NLS-1$
+            final Path file = Paths.get(dir, fSynEventFilename);
+            if (writeFile) {
+                if (Files.exists(file)) {
+                    try {
+                        Files.delete(file);
+                    } catch (IOException e1) {
+                    }
                 }
-            }
-            final ImmutableList<ITmfEvent> synEvents = ImmutableList.copyOf(((XmlFilterStateProvider)provider).getSyntheticEventList());
-            fSynEventsList = synEvents;
-            try (ObjectOutputStream oos = new ObjectOutputStream(Files.newOutputStream(file))) {
-                System.out.println("writing new file!"); //$NON-NLS-1$
-                    oos.writeObject(synEvents);
-            } catch (IOException e) {
-                System.err.println("WRITE FAILED : " + e.getMessage()); //$NON-NLS-1$
-            }
-        } else if (Files.exists(file)) {
-            try (ObjectInputStream ois = new ObjectInputStream(Files.newInputStream(file))) {
-                @SuppressWarnings("unchecked")
-                ImmutableList<ITmfEvent> synEvents = (ImmutableList<ITmfEvent>) ois.readObject();
+                final ImmutableList<ITmfEvent> synEvents = ImmutableList.copyOf(((XmlFilterStateProvider) provider).getSyntheticEventList());
                 fSynEventsList = synEvents;
-            } catch (IOException | ClassNotFoundException | ClassCastException e) {
-                try {
-                    Files.delete(file);
-                    System.err.println("READ FAILED : " + e.getMessage()); //$NON-NLS-1$
-                } catch (IOException e1) {
+                try (ObjectOutputStream oos = new ObjectOutputStream(Files.newOutputStream(file))) {
+                    System.out.println("writing new file!"); //$NON-NLS-1$
+                    oos.writeObject(synEvents);
+                } catch (IOException e) {
+                    System.err.println("WRITE FAILED : " + e.getMessage()); //$NON-NLS-1$
+                }
+            } else if (Files.exists(file)) {
+                try (ObjectInputStream ois = new ObjectInputStream(Files.newInputStream(file))) {
+                    @SuppressWarnings("unchecked")
+                    ImmutableList<ITmfEvent> synEvents = (ImmutableList<ITmfEvent>) ois.readObject();
+                    fSynEventsList = synEvents;
+                } catch (IOException | ClassNotFoundException | ClassCastException e) {
+                    try {
+                        Files.delete(file);
+                        System.err.println("READ FAILED : " + e.getMessage()); //$NON-NLS-1$
+                    } catch (IOException e1) {
+                    }
                 }
             }
         }

@@ -121,7 +121,7 @@ public class TmfXmlFilterEventHandler {
             if (!fActiveFsmList.contains(fsm)) {
                 fActiveFsmList.add(fsm);
             }
-            fsm.startScenario(parentFsmId, event, this);
+            fsm.createScenario(parentFsmId, event, this);
         }
     }
 

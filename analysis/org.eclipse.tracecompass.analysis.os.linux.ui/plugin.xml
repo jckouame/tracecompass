@@ -99,6 +99,22 @@
             name="%latencychain.density.view.name"
             restorable="true">
       </view>
+      <view
+            allowMultiple="false"
+            category="org.eclipse.linuxtools.lttng2.ui.views.category"
+            class="org.eclipse.tracecompass.analysis.os.linux.ui.xmlIrqLatency.XMLIrqLatency"
+            id="org.eclipse.tracecompass.analysis.os.linux.ui.xmlIrqLatency"
+            name="XML IRQ Latency"
+            restorable="true">
+      </view>
+      <view
+            allowMultiple="false"
+            category="org.eclipse.linuxtools.lttng2.ui.views.category"
+            class="org.eclipse.tracecompass.analysis.os.linux.ui.xmlIrqAverageLatency.XMLIrqAverageLatency"
+            id="org.eclipse.tracecompass.analysis.os.linux.ui.xmlIrqAverageLatency"
+            name="XML IRQ Average Latency"
+            restorable="true">
+      </view>
    </extension>
    <extension
          point="org.eclipse.linuxtools.tmf.core.analysis">

@@ -67,6 +67,31 @@ public class Messages extends NLS {
      */
     public static String LatencyTable_ShowStatisticsActionName;
 
+    /**
+     * Title for the density chart.
+     */
+    public static String LatencyDensityView_ChartTitle;
+
+    /**
+     * Label for the count axis of the density chart.
+     */
+    public static String LatencyDensityView_CountAxisLabel;
+
+    /**
+     * Label for the time axis of the density chart.
+     */
+    public static String LatencyDensityView_TimeAxisLabel;
+
+    /**
+     * Tool-tip for the Zoom out action
+     */
+    public static String LatencyDensityView_ZoomOutActionToolTipText;
+
+    /**
+     * Label for the series of the density chart.
+     */
+    public static String LatencyDensityViewer_SeriesLabel;
+
     static {
         // initialize resource bundle
         NLS.initializeMessages(BUNDLE_NAME, Messages.class);

@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2015 Ericsson
+ *
+ * All rights reserved. This program and the accompanying materials are
+ * made available under the terms of the Eclipse Public License v1.0 which
+ * accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *******************************************************************************/
+
 package org.eclipse.tracecompass.internal.analysis.os.linux.ui.views.latency;
 
 import java.util.Arrays;
@@ -49,39 +58,19 @@ public class LatencyDensityViewer extends TmfViewer {
     private LatencyAnalysisListener fListener;
     private @Nullable LatencyAnalysis fAnalysisModule;
     private TmfTimeRange fCurrentRange = TmfTimeRange.NULL_RANGE;
-    private MouseListener fMouseListener = new MouseListener() {
 
-        private double fMin = Double.MIN_VALUE;
-        private double fMax = Double.MAX_VALUE;
-
-        @Override
-        public void mouseUp(@Nullable MouseEvent e) {
-            if (e == null) {
-                return;
-            }
-            if (e.button == 3) {
-                fMax = getControl().getAxisSet().getXAxis(0).getDataCoordinate(e.x);
-            }
-            zoom(fMin, fMax);
-        }
-
-        @Override
-        public void mouseDown(@Nullable MouseEvent e) {
-            if (e == null) {
-                return;
-            }
-            if (e.button == 3) {
-                fMin = getControl().getAxisSet().getXAxis(0).getDataCoordinate(e.x);
-                fMax = fMin;
-            }
-        }
-
-        @Override
-        public void mouseDoubleClick(@Nullable MouseEvent e) {
-            // do nothing
-        }
-    };
-
+    /**
+     * Constructs a new density viewer.
+     *
+     * @param parent
+     *            the parent of the viewer
+     * @param title
+     *            the title to use for the chart
+     * @param xLabel
+     *            the label to use for the X-axis
+     * @param yLabel
+     *            the label to use for the Y-axis
+     */
     public LatencyDensityViewer(Composite parent, String title, String xLabel, String yLabel) {
         super(parent, title);
         fXLabel = xLabel;
@@ -106,7 +95,38 @@ public class LatencyDensityViewer extends TmfViewer {
                 fAnalysisModule.addListener(fListener);
             }
         }
-        fChart.addMouseListener(fMouseListener);
+        fChart.getPlotArea().addMouseListener(new MouseListener() {
+
+            private double fMin = Double.MIN_VALUE;
+            private double fMax = Double.MAX_VALUE;
+
+            @Override
+            public void mouseUp(@Nullable MouseEvent e) {
+                if (e == null) {
+                    return;
+                }
+                if (e.button == 3) {
+                    fMax = getControl().getAxisSet().getXAxis(0).getDataCoordinate(e.x);
+                    zoom(fMin, fMax);
+                }
+            }
+
+            @Override
+            public void mouseDown(@Nullable MouseEvent e) {
+                if (e == null) {
+                    return;
+                }
+                if (e.button == 3) {
+                    fMin = getControl().getAxisSet().getXAxis(0).getDataCoordinate(e.x);
+                    fMax = fMin;
+                }
+            }
+
+            @Override
+            public void mouseDoubleClick(@Nullable MouseEvent e) {
+                // do nothing
+            }
+        });
 
     }
 
@@ -119,7 +139,7 @@ public class LatencyDensityViewer extends TmfViewer {
             return;
         }
         Collections.sort(data, SegmentComparators.INTERVAL_LENGTH_COMPARATOR);
-        IBarSeries series = (IBarSeries) fChart.getSeriesSet().createSeries(SeriesType.BAR, "Latencies");
+        IBarSeries series = (IBarSeries) fChart.getSeriesSet().createSeries(SeriesType.BAR, Messages.LatencyDensityViewer_SeriesLabel);
         series.setVisible(true);
         series.setBarPadding(0);
         final int width = fChart.getPlotArea().getBounds().width / 4;
@@ -186,6 +206,12 @@ public class LatencyDensityViewer extends TmfViewer {
         });
     }
 
+    /**
+     * Signal handler for handling of the window range signal.
+     *
+     * @param signal
+     *            The {@link TmfWindowRangeUpdatedSignal}
+     */
     @TmfSignalHandler
     public void windowRangeUpdated(@Nullable TmfWindowRangeUpdatedSignal signal) {
         if (signal == null) {
@@ -231,4 +257,11 @@ public class LatencyDensityViewer extends TmfViewer {
         fChart.redraw();
     }
 
+    @Override
+    public void dispose() {
+        if (fAnalysisModule != null) {
+            fAnalysisModule.addListener(fListener);
+        }
+        super.dispose();
+    }
 }

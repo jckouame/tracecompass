@@ -15,8 +15,6 @@ import java.util.List;
 
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.tracecompass.analysis.os.linux.core.latency.LatencyAnalysis;
@@ -58,6 +56,7 @@ public class LatencyDensityViewer extends TmfViewer {
     private LatencyAnalysisListener fListener;
     private @Nullable LatencyAnalysis fAnalysisModule;
     private TmfTimeRange fCurrentRange = TmfTimeRange.NULL_RANGE;
+    private TmfMouseDragZoomProvider fDragZoomProvider;
 
     /**
      * Constructs a new density viewer.
@@ -95,38 +94,41 @@ public class LatencyDensityViewer extends TmfViewer {
                 fAnalysisModule.addListener(fListener);
             }
         }
-        fChart.getPlotArea().addMouseListener(new MouseListener() {
+//        fChart.getPlotArea().addMouseListener(new MouseListener() {
+//
+//            private double fMin = Double.MIN_VALUE;
+//            private double fMax = Double.MAX_VALUE;
+//
+//            @Override
+//            public void mouseUp(@Nullable MouseEvent e) {
+//                if (e == null) {
+//                    return;
+//                }
+//                if (e.button == 3) {
+//                    fMax = getControl().getAxisSet().getXAxis(0).getDataCoordinate(e.x);
+//                    zoom(fMin, fMax);
+//                }
+//            }
+//
+//            @Override
+//            public void mouseDown(@Nullable MouseEvent e) {
+//                if (e == null) {
+//                    return;
+//                }
+//                if (e.button == 3) {
+//                    fMin = getControl().getAxisSet().getXAxis(0).getDataCoordinate(e.x);
+//                    fMax = fMin;
+//                }
+//            }
+//
+//            @Override
+//            public void mouseDoubleClick(@Nullable MouseEvent e) {
+//                // do nothing
+//            }
+//        });
 
-            private double fMin = Double.MIN_VALUE;
-            private double fMax = Double.MAX_VALUE;
-
-            @Override
-            public void mouseUp(@Nullable MouseEvent e) {
-                if (e == null) {
-                    return;
-                }
-                if (e.button == 3) {
-                    fMax = getControl().getAxisSet().getXAxis(0).getDataCoordinate(e.x);
-                    zoom(fMin, fMax);
-                }
-            }
-
-            @Override
-            public void mouseDown(@Nullable MouseEvent e) {
-                if (e == null) {
-                    return;
-                }
-                if (e.button == 3) {
-                    fMin = getControl().getAxisSet().getXAxis(0).getDataCoordinate(e.x);
-                    fMax = fMin;
-                }
-            }
-
-            @Override
-            public void mouseDoubleClick(@Nullable MouseEvent e) {
-                // do nothing
-            }
-        });
+        fDragZoomProvider = new TmfMouseDragZoomProvider(this);
+        fDragZoomProvider.register();
 
     }
 
@@ -262,6 +264,7 @@ public class LatencyDensityViewer extends TmfViewer {
         if (fAnalysisModule != null) {
             fAnalysisModule.addListener(fListener);
         }
+        fDragZoomProvider.deregister();
         super.dispose();
     }
 }

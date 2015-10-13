@@ -94,38 +94,6 @@ public class LatencyDensityViewer extends TmfViewer {
                 fAnalysisModule.addListener(fListener);
             }
         }
-//        fChart.getPlotArea().addMouseListener(new MouseListener() {
-//
-//            private double fMin = Double.MIN_VALUE;
-//            private double fMax = Double.MAX_VALUE;
-//
-//            @Override
-//            public void mouseUp(@Nullable MouseEvent e) {
-//                if (e == null) {
-//                    return;
-//                }
-//                if (e.button == 3) {
-//                    fMax = getControl().getAxisSet().getXAxis(0).getDataCoordinate(e.x);
-//                    zoom(fMin, fMax);
-//                }
-//            }
-//
-//            @Override
-//            public void mouseDown(@Nullable MouseEvent e) {
-//                if (e == null) {
-//                    return;
-//                }
-//                if (e.button == 3) {
-//                    fMin = getControl().getAxisSet().getXAxis(0).getDataCoordinate(e.x);
-//                    fMax = fMin;
-//                }
-//            }
-//
-//            @Override
-//            public void mouseDoubleClick(@Nullable MouseEvent e) {
-//                // do nothing
-//            }
-//        });
 
         fDragZoomProvider = new TmfMouseDragZoomProvider(this);
         fDragZoomProvider.register();

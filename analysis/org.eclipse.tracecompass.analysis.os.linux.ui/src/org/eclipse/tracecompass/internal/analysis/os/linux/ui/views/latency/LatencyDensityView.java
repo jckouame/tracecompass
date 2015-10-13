@@ -15,10 +15,16 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.viewers.TableViewer;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.tracecompass.common.core.NonNullUtils;
 import org.eclipse.tracecompass.internal.analysis.os.linux.ui.Activator;
 import org.eclipse.tracecompass.internal.analysis.os.linux.ui.AnalysisImageConstants;
+import org.eclipse.tracecompass.tmf.ui.viewers.table.TmfSimpleTableViewer;
 import org.eclipse.tracecompass.tmf.ui.views.TmfView;
 import org.eclipse.ui.IActionBars;
 
@@ -31,8 +37,10 @@ import org.eclipse.ui.IActionBars;
 public class LatencyDensityView extends TmfView {
     /** The view's ID */
     public static final String ID = "org.eclipse.tracecompass.analysis.os.linux.views.latency.density"; //$NON-NLS-1$
+    private @Nullable SashForm fSashForm;
 
     private @Nullable LatencyDensityViewer fChart;
+    private @Nullable TmfSimpleTableViewer fTableViewer;
     /**
      * Constructs a new density view.
      */
@@ -43,14 +51,32 @@ public class LatencyDensityView extends TmfView {
     @Override
     public void createPartControl(@Nullable Composite parent) {
         super.createPartControl(parent);
-        fChart = new LatencyDensityViewer(NonNullUtils.checkNotNull(parent),
+
+        fSashForm = new SashForm(parent, SWT.NONE);
+
+        TableViewer t = new TableViewer(fSashForm);
+        fTableViewer = new TmfSimpleTableViewer(t);
+        Table table = fTableViewer.getTableViewer().getTable();
+
+        TableItem tableItem = new TableItem(table, SWT.NONE);
+        tableItem.setText("Test");
+
+        fChart = new LatencyDensityViewer(NonNullUtils.checkNotNull(fSashForm),
                 nullToEmptyString(Messages.LatencyDensityView_ChartTitle),
                 nullToEmptyString(Messages.LatencyDensityView_TimeAxisLabel),
                 nullToEmptyString(Messages.LatencyDensityView_CountAxisLabel));
+        final SashForm sashForm = fSashForm;
+        if (sashForm != null) {
+            sashForm.setWeights(new int[] {3, 7});
+        }
+
         Action zoomOut = new Action() {
             @Override
             public void run() {
-                fChart.zoom(0, Long.MAX_VALUE);
+                final LatencyDensityViewer chart = fChart;
+                if (chart != null) {
+                    chart.zoom(0, Long.MAX_VALUE);
+                }
             }
 
             @Override

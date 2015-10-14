@@ -24,6 +24,8 @@ import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.tracecompass.common.core.NonNullUtils;
 import org.eclipse.tracecompass.internal.analysis.os.linux.ui.Activator;
 import org.eclipse.tracecompass.internal.analysis.os.linux.ui.AnalysisImageConstants;
+import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
+import org.eclipse.tracecompass.tmf.core.trace.TmfTraceManager;
 import org.eclipse.tracecompass.tmf.ui.viewers.table.TmfSimpleTableViewer;
 import org.eclipse.tracecompass.tmf.ui.views.TmfView;
 import org.eclipse.ui.IActionBars;
@@ -39,7 +41,7 @@ public class LatencyDensityView extends TmfView {
     public static final String ID = "org.eclipse.tracecompass.analysis.os.linux.views.latency.density"; //$NON-NLS-1$
     private @Nullable SashForm fSashForm;
 
-    private @Nullable LatencyDensityViewer fChart;
+    private @Nullable LatencyDensityViewer fChartViewer;
     private @Nullable TmfSimpleTableViewer fTableViewer;
     /**
      * Constructs a new density view.
@@ -61,7 +63,7 @@ public class LatencyDensityView extends TmfView {
         TableItem tableItem = new TableItem(table, SWT.NONE);
         tableItem.setText("Test");
 
-        fChart = new LatencyDensityViewer(NonNullUtils.checkNotNull(fSashForm),
+        fChartViewer = new LatencyDensityViewer(NonNullUtils.checkNotNull(fSashForm),
                 nullToEmptyString(Messages.LatencyDensityView_ChartTitle),
                 nullToEmptyString(Messages.LatencyDensityView_TimeAxisLabel),
                 nullToEmptyString(Messages.LatencyDensityView_CountAxisLabel));
@@ -73,7 +75,7 @@ public class LatencyDensityView extends TmfView {
         Action zoomOut = new Action() {
             @Override
             public void run() {
-                final LatencyDensityViewer chart = fChart;
+                final LatencyDensityViewer chart = fChartViewer;
                 if (chart != null) {
                     chart.zoom(0, Long.MAX_VALUE);
                 }
@@ -92,13 +94,17 @@ public class LatencyDensityView extends TmfView {
         IActionBars actionBars = getViewSite().getActionBars();
         IToolBarManager toolBar = actionBars.getToolBarManager();
         toolBar.add(zoomOut);
+        ITmfTrace trace = TmfTraceManager.getInstance().getActiveTrace();
+        if (trace != null && fChartViewer != null) {
+            fChartViewer.loadTrace(trace);
+        }
     }
 
     @Override
     public void setFocus() {
-        final LatencyDensityViewer chart = fChart;
-        if (chart != null) {
-            chart.getControl().setFocus();
+        final LatencyDensityViewer viewer = fChartViewer;
+        if (viewer != null) {
+            viewer.getControl().setFocus();
         }
     }
 

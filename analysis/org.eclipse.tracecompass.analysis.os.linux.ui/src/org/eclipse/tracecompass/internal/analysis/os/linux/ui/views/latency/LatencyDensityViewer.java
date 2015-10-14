@@ -27,16 +27,22 @@ import org.eclipse.tracecompass.segmentstore.core.ISegment;
 import org.eclipse.tracecompass.segmentstore.core.ISegmentStore;
 import org.eclipse.tracecompass.segmentstore.core.SegmentComparators;
 import org.eclipse.tracecompass.tmf.core.signal.TmfSignalHandler;
+import org.eclipse.tracecompass.tmf.core.signal.TmfTraceClosedSignal;
+import org.eclipse.tracecompass.tmf.core.signal.TmfTraceOpenedSignal;
+import org.eclipse.tracecompass.tmf.core.signal.TmfTraceSelectedSignal;
 import org.eclipse.tracecompass.tmf.core.signal.TmfWindowRangeUpdatedSignal;
 import org.eclipse.tracecompass.tmf.core.timestamp.TmfTimeRange;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
+import org.eclipse.tracecompass.tmf.core.trace.TmfTraceContext;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTraceManager;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTraceUtils;
 import org.eclipse.tracecompass.tmf.ui.viewers.TmfViewer;
 import org.swtchart.Chart;
 import org.swtchart.IAxis;
 import org.swtchart.IBarSeries;
+import org.swtchart.ISeries;
 import org.swtchart.ISeries.SeriesType;
+import org.swtchart.ISeriesSet;
 import org.swtchart.LineStyle;
 import org.swtchart.Range;
 
@@ -56,11 +62,12 @@ public class LatencyDensityViewer extends TmfViewer {
     private final String fXLabel;
     private final String fYLabel;
     private Chart fChart;
-    private LatencyAnalysisListener fListener;
+    private @Nullable LatencyAnalysisListener fListener;
     private @Nullable LatencyAnalysis fAnalysisModule;
     private TmfTimeRange fCurrentRange = TmfTimeRange.NULL_RANGE;
     private TmfMouseDragZoomProvider fDragZoomProvider;
     private TmfSimpleTooltipProvider fTooltipProvider;
+    private @Nullable ITmfTrace fTrace;
 
     /**
      * Constructs a new density viewer.
@@ -84,20 +91,6 @@ public class LatencyDensityViewer extends TmfViewer {
         fChart.getAxisSet().getYAxis(0).getTitle().setText(fYLabel);
         fChart.getAxisSet().getXAxis(0).getGrid().setStyle(LineStyle.NONE);
         fChart.getAxisSet().getYAxis(0).getGrid().setStyle(LineStyle.NONE);
-        fListener = new LatencyAnalysisListener() {
-            @Override
-            public void onComplete(LatencyAnalysis activeAnalysis, ISegmentStore<ISegment> data) {
-                fAnalysisModule = activeAnalysis;
-                updateWithRange(activeAnalysis);
-            }
-        };
-        ITmfTrace trace = TmfTraceManager.getInstance().getActiveTrace();
-        if (trace != null) {
-            fAnalysisModule = getLatencyAnalysis(trace);
-            if (fAnalysisModule != null) {
-                fAnalysisModule.addListener(fListener);
-            }
-        }
 
         fDragZoomProvider = new TmfMouseDragZoomProvider(this);
         fDragZoomProvider.register();
@@ -120,6 +113,7 @@ public class LatencyDensityViewer extends TmfViewer {
     private static final @Nullable LatencyAnalysis getLatencyAnalysis(ITmfTrace trace) {
         return TmfTraceUtils.getAnalysisModuleOfClass(trace, LatencyAnalysis.class, LatencyAnalysis.ID);
     }
+
 
     private void updateData(List<ISegment> data) {
         if (data.isEmpty()) {
@@ -210,19 +204,17 @@ public class LatencyDensityViewer extends TmfViewer {
             return;
         }
         fAnalysisModule = getLatencyAnalysis(trace);
-        if (fAnalysisModule != null) {
-            fAnalysisModule.addListener(fListener);
-        }
         fCurrentRange = NonNullUtils.checkNotNull(signal.getCurrentRange());
-        LatencyAnalysis analysisModule = fAnalysisModule;
-        if (analysisModule == null) {
-            return;
-        }
-        updateWithRange(analysisModule);
+        updateWithRange();
     }
 
-    private void updateWithRange(LatencyAnalysis analysisModule) {
-        ISegmentStore<ISegment> results = analysisModule.getResults();
+    private void updateWithRange() {
+        final LatencyAnalysis module = fAnalysisModule;
+        if (module == null) {
+            return;
+        }
+
+        ISegmentStore<ISegment> results = module.getResults();
         if (results != null) {
             final Iterable<ISegment> intersection = results.getIntersectingElements(fCurrentRange.getStartTime().getValue(), fCurrentRange.getEndTime().getValue());
             Display.getDefault().asyncExec(new Runnable() {
@@ -246,11 +238,111 @@ public class LatencyDensityViewer extends TmfViewer {
 
     @Override
     public void dispose() {
-        if (fAnalysisModule != null) {
-            fAnalysisModule.addListener(fListener);
+        if (fAnalysisModule != null && fListener != null) {
+            fAnalysisModule.removeListener(fListener);
         }
         fDragZoomProvider.deregister();
         fTooltipProvider.deregister();
         super.dispose();
+    }
+
+    /**
+     * Signal handler for handling of the trace opened signal.
+     *
+     * @param signal
+     *            The trace opened signal {@link TmfTraceOpenedSignal}
+     */
+    @TmfSignalHandler
+    public void traceOpened(TmfTraceOpenedSignal signal) {
+        fTrace = signal.getTrace();
+        loadTrace(getTrace());
+    }
+
+    /**
+     * Signal handler for handling of the trace selected signal.
+     *
+     * @param signal
+     *            The trace selected signal {@link TmfTraceSelectedSignal}
+     */
+    @TmfSignalHandler
+    public void traceSelected(TmfTraceSelectedSignal signal) {
+        if (fTrace != signal.getTrace()) {
+            fTrace = signal.getTrace();
+            loadTrace(getTrace());
+        }
+    }
+
+    /**
+     * Signal handler for handling of the trace closed signal.
+     *
+     * @param signal
+     *            The trace closed signal {@link TmfTraceClosedSignal}
+     */
+    @TmfSignalHandler
+    public void traceClosed(TmfTraceClosedSignal signal) {
+
+        if (signal.getTrace() != fTrace) {
+            return;
+        }
+
+        // Reset the internal data
+        fTrace = null;
+        clearContent();
+    }
+
+    /**
+     * A Method to load a trace into the viewer.
+     *
+     * @param trace
+     *            A trace to apply in the viewer
+     */
+    void loadTrace(@Nullable ITmfTrace trace) {
+        fTrace = trace;
+        TmfTraceContext ctx = TmfTraceManager.getInstance().getCurrentTraceContext();
+        fCurrentRange = ctx.getWindowRange();
+
+        clearContent();
+        initializeDataSource();
+        updateContent();
+    }
+
+    private void initializeDataSource() {
+        ITmfTrace trace = getTrace();
+        if (trace != null) {
+            fAnalysisModule = getLatencyAnalysis(trace);
+            final LatencyAnalysis module = fAnalysisModule;
+            if (module != null) {
+                fListener = new LatencyAnalysisListener() {
+                    @Override
+                    public void onComplete(LatencyAnalysis activeAnalysis, ISegmentStore<ISegment> data) {
+                        updateWithRange();
+                    }
+                };
+                module.addListener(fListener);
+                module.schedule();
+            }
+        }
+    }
+
+    private void updateContent() {
+        zoom(0, Long.MAX_VALUE);
+    }
+
+    /**
+     * Clears the view content.
+     */
+    private void clearContent() {
+        final Chart fChart2 = fChart;
+        if (!fChart2.isDisposed()) {
+            ISeriesSet set = fChart2.getSeriesSet();
+            ISeries[] series = set.getSeries();
+            for (int i = 0; i < series.length; i++) {
+                set.deleteSeries(series[i].getId());
+            }
+            for (IAxis axis: fChart2.getAxisSet().getAxes()){
+                axis.setRange(new Range(0,1));
+            }
+            fChart2.redraw();
+        }
     }
 }

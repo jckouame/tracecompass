@@ -15,6 +15,8 @@ import java.util.List;
 
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.tracecompass.analysis.os.linux.core.latency.LatencyAnalysis;
@@ -32,6 +34,7 @@ import org.eclipse.tracecompass.tmf.core.trace.TmfTraceManager;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTraceUtils;
 import org.eclipse.tracecompass.tmf.ui.viewers.TmfViewer;
 import org.swtchart.Chart;
+import org.swtchart.IAxis;
 import org.swtchart.IBarSeries;
 import org.swtchart.ISeries.SeriesType;
 import org.swtchart.LineStyle;
@@ -57,6 +60,7 @@ public class LatencyDensityViewer extends TmfViewer {
     private @Nullable LatencyAnalysis fAnalysisModule;
     private TmfTimeRange fCurrentRange = TmfTimeRange.NULL_RANGE;
     private TmfMouseDragZoomProvider fDragZoomProvider;
+    private TmfSimpleTooltipProvider fTooltipProvider;
 
     /**
      * Constructs a new density viewer.
@@ -97,6 +101,19 @@ public class LatencyDensityViewer extends TmfViewer {
 
         fDragZoomProvider = new TmfMouseDragZoomProvider(this);
         fDragZoomProvider.register();
+        fTooltipProvider = new TmfSimpleTooltipProvider(this);
+        fTooltipProvider.register();
+        fChart.getPlotArea().addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseUp(@Nullable MouseEvent e) {
+                super.mouseUp(e);
+                if (e != null) {
+                    IAxis xAxis = fChart.getAxisSet().getXAxis(0);
+                    double endTime = xAxis.getDataCoordinate(e.x);
+                    System.out.println("selected: " + endTime);
+                }
+            }
+        });
 
     }
 
@@ -233,6 +250,7 @@ public class LatencyDensityViewer extends TmfViewer {
             fAnalysisModule.addListener(fListener);
         }
         fDragZoomProvider.deregister();
+        fTooltipProvider.deregister();
         super.dispose();
     }
 }

@@ -55,7 +55,7 @@ public class LatencyDensityView extends TmfView {
         fSashForm = new SashForm(parent, SWT.NONE);
 
         TableViewer t = new TableViewer(fSashForm);
-        fTableViewer = new TmfSimpleTableViewer(t);
+        fTableViewer = new LatencyTableViewer(t);
         Table table = fTableViewer.getTableViewer().getTable();
 
         TableItem tableItem = new TableItem(table, SWT.NONE);

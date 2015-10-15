@@ -11,6 +11,8 @@ package org.eclipse.tracecompass.internal.analysis.os.linux.ui.views.latency;
 
 import static org.eclipse.tracecompass.common.core.NonNullUtils.nullToEmptyString;
 
+import java.util.List;
+
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IToolBarManager;
@@ -19,14 +21,14 @@ import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Table;
-import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.tracecompass.common.core.NonNullUtils;
 import org.eclipse.tracecompass.internal.analysis.os.linux.ui.Activator;
 import org.eclipse.tracecompass.internal.analysis.os.linux.ui.AnalysisImageConstants;
+import org.eclipse.tracecompass.internal.analysis.os.linux.ui.views.latency.LatencyDensityViewer.ContentChangedListener;
+import org.eclipse.tracecompass.segmentstore.core.ISegment;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTraceManager;
-import org.eclipse.tracecompass.tmf.ui.viewers.table.TmfSimpleTableViewer;
 import org.eclipse.tracecompass.tmf.ui.views.TmfView;
 import org.eclipse.ui.IActionBars;
 
@@ -42,7 +44,7 @@ public class LatencyDensityView extends TmfView {
     private @Nullable SashForm fSashForm;
 
     private @Nullable LatencyDensityViewer fChartViewer;
-    private @Nullable TmfSimpleTableViewer fTableViewer;
+    private @Nullable LatencyTableViewer fTableViewer;
     /**
      * Constructs a new density view.
      */
@@ -56,20 +58,31 @@ public class LatencyDensityView extends TmfView {
 
         fSashForm = new SashForm(parent, SWT.NONE);
 
-        TableViewer t = new TableViewer(fSashForm);
+        TableViewer t = new TableViewer(fSashForm, SWT.FULL_SELECTION | SWT.VIRTUAL);
         fTableViewer = new LatencyTableViewer(t);
-        Table table = fTableViewer.getTableViewer().getTable();
-
-        TableItem tableItem = new TableItem(table, SWT.NONE);
-        tableItem.setText("Test");
+        final TableColumn tableColumn = t.getTable().getColumns()[2];
+        tableColumn.setWidth(100);
 
         fChartViewer = new LatencyDensityViewer(NonNullUtils.checkNotNull(fSashForm),
                 nullToEmptyString(Messages.LatencyDensityView_ChartTitle),
                 nullToEmptyString(Messages.LatencyDensityView_TimeAxisLabel),
                 nullToEmptyString(Messages.LatencyDensityView_CountAxisLabel));
+
+        fChartViewer.addContentChangedListener(new ContentChangedListener(){
+
+            @Override
+            public void contentChanged(List<ISegment> data) {
+                final LatencyTableViewer viewer = fTableViewer;
+                if (viewer != null) {
+                    viewer.updateModel(data.toArray(new ISegment[] {}));
+                }
+            }
+
+        });
+
         final SashForm sashForm = fSashForm;
         if (sashForm != null) {
-            sashForm.setWeights(new int[] {3, 7});
+            sashForm.setWeights(new int[] {4, 6});
         }
 
         Action zoomOut = new Action() {

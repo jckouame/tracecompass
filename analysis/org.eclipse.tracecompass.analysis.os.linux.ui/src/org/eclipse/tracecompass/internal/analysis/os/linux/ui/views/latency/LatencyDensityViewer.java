@@ -9,6 +9,7 @@
 
 package org.eclipse.tracecompass.internal.analysis.os.linux.ui.views.latency;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -59,6 +60,10 @@ import com.google.common.collect.UnmodifiableIterator;
  */
 public class LatencyDensityViewer extends TmfViewer {
 
+    interface ContentChangedListener {
+        void contentChanged(List<ISegment> data);
+    }
+
     private final String fXLabel;
     private final String fYLabel;
     private Chart fChart;
@@ -68,6 +73,7 @@ public class LatencyDensityViewer extends TmfViewer {
     private TmfMouseDragZoomProvider fDragZoomProvider;
     private TmfSimpleTooltipProvider fTooltipProvider;
     private @Nullable ITmfTrace fTrace;
+    private List<ContentChangedListener> fListeners;
 
     /**
      * Constructs a new density viewer.
@@ -83,6 +89,7 @@ public class LatencyDensityViewer extends TmfViewer {
      */
     public LatencyDensityViewer(Composite parent, String title, String xLabel, String yLabel) {
         super(parent, title);
+        fListeners = new ArrayList<>();
         fXLabel = xLabel;
         fYLabel = yLabel;
         fChart = new Chart(parent, SWT.NONE);
@@ -115,11 +122,10 @@ public class LatencyDensityViewer extends TmfViewer {
     }
 
 
-    private void updateData(List<ISegment> data) {
+    private void updateDisplay(List<ISegment> data) {
         if (data.isEmpty()) {
             return;
         }
-        Collections.sort(data, SegmentComparators.INTERVAL_LENGTH_COMPARATOR);
         IBarSeries series = (IBarSeries) fChart.getSeriesSet().createSeries(SeriesType.BAR, Messages.LatencyDensityViewer_SeriesLabel);
         series.setVisible(true);
         series.setBarPadding(0);
@@ -160,31 +166,44 @@ public class LatencyDensityViewer extends TmfViewer {
     }
 
     public void zoom(final double min, final double max) {
-        LatencyAnalysis analysisModule = fAnalysisModule;
-        if (analysisModule == null) {
-            return;
-        }
-        ISegmentStore<ISegment> results = analysisModule.getResults();
-        if (results == null) {
-            return;
-        }
-        Iterable<ISegment> intersectingElements = results.getIntersectingElements(fCurrentRange.getStartTime().getValue(), fCurrentRange.getEndTime().getValue());
-        Predicate<? super ISegment> predicate = new Predicate<ISegment>() {
+        new Thread(new Runnable() {
             @Override
-            public boolean apply(@Nullable ISegment input) {
+            public void run() {
+                LatencyAnalysis analysisModule = fAnalysisModule;
+                if (analysisModule == null) {
+                    return;
+                }
+                ISegmentStore<ISegment> results = analysisModule.getResults();
+                if (results == null) {
+                    return;
+                }
+                Iterable<ISegment> intersectingElements = results.getIntersectingElements(fCurrentRange.getStartTime().getValue(), fCurrentRange.getEndTime().getValue());
+                Predicate<? super ISegment> predicate = new Predicate<ISegment>() {
+                    @Override
+                    public boolean apply(@Nullable ISegment input) {
 
-                return input != null && input.getLength() >= min && input.getLength() <= max;
+                        return input != null && input.getLength() >= min && input.getLength() <= max;
+                    }
+
+                };
+                final UnmodifiableIterator<ISegment> intersection = Iterators.<ISegment> filter(intersectingElements.iterator(), predicate);
+                updateData(Lists.newArrayList(intersection));
+
             }
+        }).start();
+    }
 
-        };
-        final UnmodifiableIterator<ISegment> intersection = Iterators.<ISegment> filter(intersectingElements.iterator(), predicate);
-
+    private void updateData(final List<ISegment> data) {
+        Collections.sort(data, SegmentComparators.INTERVAL_LENGTH_COMPARATOR);
         Display.getDefault().asyncExec(new Runnable() {
             @Override
             public void run() {
-                updateData(NonNullUtils.checkNotNull(Lists.newArrayList(intersection)));
+                updateDisplay(NonNullUtils.checkNotNull(data));
             }
         });
+        for (ContentChangedListener l : fListeners) {
+            l.contentChanged(data);
+        }
     }
 
     /**
@@ -214,17 +233,18 @@ public class LatencyDensityViewer extends TmfViewer {
             return;
         }
 
-        ISegmentStore<ISegment> results = module.getResults();
-        if (results != null) {
-            final Iterable<ISegment> intersection = results.getIntersectingElements(fCurrentRange.getStartTime().getValue(), fCurrentRange.getEndTime().getValue());
-            Display.getDefault().asyncExec(new Runnable() {
+        new Thread(new Runnable() {
 
-                @Override
-                public void run() {
+            @Override
+            public void run() {
+                ISegmentStore<ISegment> results = module.getResults();
+                if (results != null) {
+                    final Iterable<ISegment> intersection = results.getIntersectingElements(fCurrentRange.getStartTime().getValue(), fCurrentRange.getEndTime().getValue());
                     updateData(Lists.newArrayList(intersection));
                 }
-            });
-        }
+
+            }
+        }).start();
     }
 
     private static @Nullable ITmfTrace getTrace() {
@@ -344,5 +364,9 @@ public class LatencyDensityViewer extends TmfViewer {
             }
             fChart2.redraw();
         }
+    }
+
+    public void addContentChangedListener(ContentChangedListener contentChangedListener) {
+        fListeners.add(contentChangedListener);
     }
 }

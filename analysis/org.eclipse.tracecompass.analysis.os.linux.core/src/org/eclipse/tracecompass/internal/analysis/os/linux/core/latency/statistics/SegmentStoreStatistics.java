@@ -11,7 +11,16 @@
  *******************************************************************************/
 package org.eclipse.tracecompass.internal.analysis.os.linux.core.latency.statistics;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.tracecompass.analysis.os.linux.core.latency.EventChainSegments;
+import org.eclipse.tracecompass.common.core.NonNullUtils;
 import org.eclipse.tracecompass.segmentstore.core.ISegment;
+
+import com.google.common.collect.ImmutableList;
 
 /**
  * Class to calculate simple segment store statistics (min, max, average)
@@ -23,6 +32,7 @@ public class SegmentStoreStatistics {
     private long fMax;
     private long fSum;
     private long fNbSegments;
+    @Nullable private List<SegmentStoreStatistics> fChildren;
 
     /**
      * Constructor
@@ -71,6 +81,19 @@ public class SegmentStoreStatistics {
     }
 
     /**
+     * Gets children SegmentStoreStatistics
+     *
+     * @return children SegmentStoreStatistics
+     */
+    public List<SegmentStoreStatistics> getChildren() {
+        List<SegmentStoreStatistics> children = fChildren;
+        if (children != null) {
+            return NonNullUtils.checkNotNull(ImmutableList.copyOf(children));
+        }
+        return Collections.EMPTY_LIST;
+    }
+
+    /**
      * Update the statistics based on a given segment
      *
      * @param segment
@@ -82,5 +105,20 @@ public class SegmentStoreStatistics {
         fMax = Math.max(fMax, value);
         fSum += value;
         fNbSegments++;
+
+        if (segment instanceof EventChainSegments) {
+            List<SegmentStoreStatistics> children = fChildren;
+            List<ISegment> subsegments = ((EventChainSegments) segment).getSubSegments();
+            if (children == null) {
+                children = new ArrayList<>();
+                for (int i = 0; i < subsegments.size(); i++) {
+                    children.add(new SegmentStoreStatistics());
+                }
+            }
+            for (int i = 0; i < subsegments.size(); i++) {
+                children.get(i).update(subsegments.get(i));
+            }
+            fChildren = children;
+        }
     }
 }

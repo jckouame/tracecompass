@@ -85,6 +85,7 @@
       <view
             category="org.eclipse.linuxtools.lttng2.ui.views.category"
             class="org.eclipse.tracecompass.internal.analysis.os.linux.ui.views.latency.LatencyDensityView"
+            icon="icons/eview16/density.png"
             id="org.eclipse.tracecompass.analysis.os.linux.views.latency.density"
             name="Latency Density"
             restorable="true">

@@ -129,7 +129,8 @@ public class LatencyDensityViewer extends TmfViewer {
         IBarSeries series = (IBarSeries) fChart.getSeriesSet().createSeries(SeriesType.BAR, Messages.LatencyDensityViewer_SeriesLabel);
         series.setVisible(true);
         series.setBarPadding(0);
-        final int width = fChart.getPlotArea().getBounds().width / 4;
+        int barWidth = 4;
+        final int width = fChart.getPlotArea().getBounds().width / barWidth;
         double[] xOrigSeries = new double[width];
         double[] yOrigSeries = new double[width];
         Arrays.fill(yOrigSeries, 1.0);

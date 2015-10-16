@@ -58,6 +58,15 @@
             restorable="true">
       </view>
       <view
+            allowMultiple="false"
+            category="org.eclipse.linuxtools.lttng2.ui.views.category"
+            class="org.eclipse.tracecompass.internal.analysis.os.linux.ui.views.latency.EventChainLatencyScatterView"
+            icon="icons/eview16/scatter.png"
+            id="org.eclipse.tracecompass.analysis.os.linux.views.latency.chainscatter"
+            name="%latencychain.scatter.view.name"
+            restorable="true">
+       </view>
+      <view
             category="org.eclipse.linuxtools.lttng2.ui.views.category"
             class="org.eclipse.tracecompass.internal.analysis.os.linux.ui.views.latency.statistics.LatencyStatisticsView"
             icon="icons/eview16/statistics_view.gif"
@@ -126,9 +135,16 @@
                class="org.eclipse.tracecompass.analysis.os.linux.core.latency.EventChainLatencyAnalysis">
          </analysisModuleClass>
       </output>
-            <output
+      <output
             class="org.eclipse.tracecompass.tmf.ui.analysis.TmfAnalysisViewOutput"
             id="org.eclipse.tracecompass.analysis.os.linux.ui.views.latency.chainstatsview">
+         <analysisModuleClass
+               class="org.eclipse.tracecompass.analysis.os.linux.core.latency.EventChainLatencyAnalysis">
+         </analysisModuleClass>
+      </output>
+      <output
+            class="org.eclipse.tracecompass.tmf.ui.analysis.TmfAnalysisViewOutput"
+            id="org.eclipse.tracecompass.analysis.os.linux.views.latency.chainscatter">
          <analysisModuleClass
                class="org.eclipse.tracecompass.analysis.os.linux.core.latency.EventChainLatencyAnalysis">
          </analysisModuleClass>

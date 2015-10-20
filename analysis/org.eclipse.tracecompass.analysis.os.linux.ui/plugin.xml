@@ -87,7 +87,15 @@
             class="org.eclipse.tracecompass.internal.analysis.os.linux.ui.views.latency.LatencyDensityView"
             icon="icons/eview16/density.png"
             id="org.eclipse.tracecompass.analysis.os.linux.views.latency.density"
-            name="Latency Density"
+            name="System Call Density"
+            restorable="true">
+      </view>
+      <view
+            category="org.eclipse.linuxtools.lttng2.ui.views.category"
+            class="org.eclipse.tracecompass.internal.analysis.os.linux.ui.views.latency.EventChainLatencyDensityView"
+            icon="icons/eview16/density.png"
+            id="org.eclipse.tracecompass.analysis.os.linux.views.latency.chaindensity"
+            name="Latency Chain Density"
             restorable="true">
       </view>
    </extension>
@@ -161,6 +169,13 @@
             id="org.eclipse.tracecompass.analysis.os.linux.views.latency.density">
          <analysisModuleClass
                class="org.eclipse.tracecompass.analysis.os.linux.core.latency.LatencyAnalysis">
+         </analysisModuleClass>
+      </output>
+      <output
+            class="org.eclipse.tracecompass.tmf.ui.analysis.TmfAnalysisViewOutput"
+            id="org.eclipse.tracecompass.analysis.os.linux.views.latency.chaindensity">
+         <analysisModuleClass
+               class="org.eclipse.tracecompass.analysis.os.linux.core.latency.EventChainLatencyDensityView">
          </analysisModuleClass>
       </output>
    </extension>

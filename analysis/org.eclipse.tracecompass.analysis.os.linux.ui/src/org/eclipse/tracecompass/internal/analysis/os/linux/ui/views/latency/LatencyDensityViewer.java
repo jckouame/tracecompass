@@ -20,7 +20,6 @@ import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.tracecompass.analysis.os.linux.core.latency.LatencyAnalysis;
 import org.eclipse.tracecompass.analysis.timing.core.latency.AbstractLatencyAnalysisModule;
 import org.eclipse.tracecompass.analysis.timing.core.latency.ILatencyAnalysisListener;
 import org.eclipse.tracecompass.common.core.NonNullUtils;
@@ -69,12 +68,14 @@ public class LatencyDensityViewer extends TmfViewer {
     private final String fYLabel;
     private Chart fChart;
     private @Nullable ILatencyAnalysisListener fListener;
-    private @Nullable LatencyAnalysis fAnalysisModule;
+    private @Nullable AbstractLatencyAnalysisModule fAnalysisModule;
     private TmfTimeRange fCurrentRange = TmfTimeRange.NULL_RANGE;
     private TmfMouseDragZoomProvider fDragZoomProvider;
     private TmfSimpleTooltipProvider fTooltipProvider;
     private @Nullable ITmfTrace fTrace;
     private List<ContentChangedListener> fListeners;
+    private final Class<? extends AbstractLatencyAnalysisModule> fModuleClass;
+    private String fModuleId;
 
     /**
      * Constructs a new density viewer.
@@ -87,9 +88,15 @@ public class LatencyDensityViewer extends TmfViewer {
      *            the label to use for the X-axis
      * @param yLabel
      *            the label to use for the Y-axis
+     * @param analysisModuleClass
+     *            the class of the analysis module populating this view
+     * @param moduleId
+     *            the id of the analysis module populating this view
      */
-    public LatencyDensityViewer(Composite parent, String title, String xLabel, String yLabel) {
+    public LatencyDensityViewer(Composite parent, String title, String xLabel, String yLabel, Class<? extends AbstractLatencyAnalysisModule> analysisModuleClass, String moduleId) {
         super(parent, title);
+        fModuleClass = analysisModuleClass;
+        fModuleId = moduleId;
         fListeners = new ArrayList<>();
         fXLabel = xLabel;
         fYLabel = yLabel;
@@ -118,8 +125,8 @@ public class LatencyDensityViewer extends TmfViewer {
 
     }
 
-    private static final @Nullable LatencyAnalysis getLatencyAnalysis(ITmfTrace trace) {
-        return TmfTraceUtils.getAnalysisModuleOfClass(trace, LatencyAnalysis.class, LatencyAnalysis.ID);
+    private @Nullable AbstractLatencyAnalysisModule getLatencyAnalysis(ITmfTrace trace) {
+        return TmfTraceUtils.getAnalysisModuleOfClass(trace, fModuleClass, fModuleId);
     }
 
 
@@ -171,7 +178,7 @@ public class LatencyDensityViewer extends TmfViewer {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                LatencyAnalysis analysisModule = fAnalysisModule;
+                AbstractLatencyAnalysisModule analysisModule = fAnalysisModule;
                 if (analysisModule == null) {
                     return;
                 }
@@ -230,7 +237,7 @@ public class LatencyDensityViewer extends TmfViewer {
     }
 
     private void updateWithRange() {
-        final LatencyAnalysis module = fAnalysisModule;
+        final AbstractLatencyAnalysisModule module = fAnalysisModule;
         if (module == null) {
             return;
         }
@@ -332,7 +339,7 @@ public class LatencyDensityViewer extends TmfViewer {
         ITmfTrace trace = getTrace();
         if (trace != null) {
             fAnalysisModule = getLatencyAnalysis(trace);
-            final LatencyAnalysis module = fAnalysisModule;
+            final AbstractLatencyAnalysisModule module = fAnalysisModule;
             if (module != null) {
                 fListener = new ILatencyAnalysisListener() {
                     @Override

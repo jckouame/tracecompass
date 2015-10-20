@@ -14,8 +14,11 @@ package org.eclipse.tracecompass.internal.analysis.os.linux.ui.views.latency;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseTrackListener;
+import org.eclipse.swt.graphics.Rectangle;
 import org.swtchart.Chart;
 import org.swtchart.IAxis;
+import org.swtchart.IBarSeries;
+import org.swtchart.ISeries;
 
 /**
  * Tool tip provider for TMF chart viewer. It displays the x and y
@@ -84,25 +87,47 @@ public class TmfSimpleTooltipProvider implements MouseTrackListener {
 
     @Override
     public void mouseHover(@Nullable MouseEvent e) {
-        if (e == null || getChartViewer().getControl().getAxisSet().getXAxes().length == 0) {
+        if (e == null || getChartViewer().getControl().getAxisSet().getXAxes().length == 0 || getChartViewer().getControl().getAxisSet().getYAxes().length == 0) {
             return;
         }
+        ISeries series = getChartViewer().getControl().getSeriesSet().getSeries()[0];
+        getChart().getPlotArea().setToolTipText(null);
+        if (series instanceof IBarSeries) {
+            IBarSeries barSeries = (IBarSeries) series;
+            Rectangle[] bounds = barSeries.getBounds();
 
-        IAxis xAxis = getChart().getAxisSet().getXAxis(0);
-        IAxis yAxis = getChart().getAxisSet().getYAxis(0);
+            for (Rectangle rec : bounds) {
+                if (rec == null) {
+                    continue;
+                }
 
-        double xCoordinate = xAxis.getDataCoordinate(e.x);
-        double yCoordinate = yAxis.getDataCoordinate(e.y);
+                int start = rec.x;
+                int end = start + rec.width;
+                if (e.x >= start && e.x <= end) {
 
-//        LatencyDensityViewer viewer = getChartViewer();
+                    IAxis xAxis = getChart().getAxisSet().getXAxes()[0];
+                    IAxis yAxis = getChart().getAxisSet().getYAxes()[0];
+                    long x1 = Math.round(Math.max(0, xAxis.getDataCoordinate(start)));
+                    long x2 = Math.round(Math.max(0, xAxis.getDataCoordinate(end)));
+                    long y = Math.round(yAxis.getDataCoordinate(rec.y));
 
-        /* set tooltip of current data point */
-        StringBuffer buffer = new StringBuffer();
-        buffer.append("x="); //$NON-NLS-1$
-        buffer.append(xCoordinate + " ns");
-        buffer.append("\n"); //$NON-NLS-1$
-        buffer.append("y="); //$NON-NLS-1$
-        buffer.append((long) yCoordinate);
-        getChart().getPlotArea().setToolTipText(buffer.toString());
+                    /* set tooltip of current data point */
+                    StringBuffer buffer = new StringBuffer();
+                    buffer.append("Duration: ["); //$NON-NLS-1$
+                    buffer.append(x1);
+                    buffer.append(", "); //$NON-NLS-1$
+                    buffer.append(x2);
+                    buffer.append("] ns"); //$NON-NLS-1$
+                    buffer.append("\n"); //$NON-NLS-1$
+                    buffer.append("Count: "); //$NON-NLS-1$
+                    buffer.append(y);
+                    getChart().getPlotArea().setToolTipText(buffer.toString());
+                    break;
+                }
+            }
+
+        }
+
+
     }
 }

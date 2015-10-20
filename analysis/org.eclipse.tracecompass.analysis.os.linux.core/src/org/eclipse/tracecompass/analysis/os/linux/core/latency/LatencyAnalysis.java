@@ -59,16 +59,6 @@ public class LatencyAnalysis extends AbstractSegmentStoreAnalysisModule {
         return BASE_ASPECTS;
     }
 
-    /**
-     * Listener for the viewers
-     *
-     * @param listener
-     *            listener for each type of viewer
-     */
-    public void removeListener(LatencyAnalysisListener listener) {
-        fListeners.remove(listener);
-    }
-
     @Override
     public String getDataFileName() {
         return DATA_FILENAME;

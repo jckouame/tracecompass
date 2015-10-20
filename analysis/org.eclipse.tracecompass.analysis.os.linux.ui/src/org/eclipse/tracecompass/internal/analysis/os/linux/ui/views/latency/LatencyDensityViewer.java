@@ -21,7 +21,8 @@ import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.tracecompass.analysis.os.linux.core.latency.LatencyAnalysis;
-import org.eclipse.tracecompass.analysis.os.linux.core.latency.LatencyAnalysisListener;
+import org.eclipse.tracecompass.analysis.timing.core.latency.AbstractLatencyAnalysisModule;
+import org.eclipse.tracecompass.analysis.timing.core.latency.ILatencyAnalysisListener;
 import org.eclipse.tracecompass.common.core.NonNullUtils;
 import org.eclipse.tracecompass.internal.analysis.os.linux.ui.Activator;
 import org.eclipse.tracecompass.segmentstore.core.ISegment;
@@ -67,7 +68,7 @@ public class LatencyDensityViewer extends TmfViewer {
     private final String fXLabel;
     private final String fYLabel;
     private Chart fChart;
-    private @Nullable LatencyAnalysisListener fListener;
+    private @Nullable ILatencyAnalysisListener fListener;
     private @Nullable LatencyAnalysis fAnalysisModule;
     private TmfTimeRange fCurrentRange = TmfTimeRange.NULL_RANGE;
     private TmfMouseDragZoomProvider fDragZoomProvider;
@@ -333,9 +334,9 @@ public class LatencyDensityViewer extends TmfViewer {
             fAnalysisModule = getLatencyAnalysis(trace);
             final LatencyAnalysis module = fAnalysisModule;
             if (module != null) {
-                fListener = new LatencyAnalysisListener() {
+                fListener = new ILatencyAnalysisListener() {
                     @Override
-                    public void onComplete(LatencyAnalysis activeAnalysis, ISegmentStore<ISegment> data) {
+                    public void onComplete(AbstractLatencyAnalysisModule activeAnalysis, ISegmentStore<ISegment> data) {
                         updateWithRange();
                     }
                 };

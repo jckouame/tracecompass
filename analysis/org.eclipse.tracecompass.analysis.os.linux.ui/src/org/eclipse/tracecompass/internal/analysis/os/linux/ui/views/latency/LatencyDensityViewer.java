@@ -101,7 +101,8 @@ public class LatencyDensityViewer extends TmfViewer {
         fXLabel = xLabel;
         fYLabel = yLabel;
         fChart = new Chart(parent, SWT.NONE);
-        fChart.getTitle().setText(title);
+        fChart.getLegend().setVisible(false);
+        fChart.getTitle().setVisible(false);
         fChart.getAxisSet().getXAxis(0).getTitle().setText(fXLabel);
         fChart.getAxisSet().getYAxis(0).getTitle().setText(fYLabel);
         fChart.getAxisSet().getXAxis(0).getGrid().setStyle(LineStyle.NONE);

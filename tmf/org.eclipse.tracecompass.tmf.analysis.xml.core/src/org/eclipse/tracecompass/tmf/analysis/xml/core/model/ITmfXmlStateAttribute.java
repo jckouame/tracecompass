@@ -31,10 +31,11 @@ public interface ITmfXmlStateAttribute {
      * builder mode.
      *
      * @param startQuark
-     *            root quark, use {@link IXmlStateSystemContainer#ROOT_QUARK} to search
-     *            the full attribute tree
+     *            root quark, use {@link IXmlStateSystemContainer#ROOT_QUARK} to
+     *            search the full attribute tree
      * @return the quark described by attribute or
-     *         {@link IXmlStateSystemContainer#ERROR_QUARK} if quark cannot be found
+     *         {@link IXmlStateSystemContainer#ERROR_QUARK} if quark cannot be
+     *         found
      */
     int getAttributeQuark(int startQuark);
 
@@ -48,10 +49,33 @@ public interface ITmfXmlStateAttribute {
      * @param event
      *            The current event being handled
      * @param startQuark
-     *            root quark, use {@link IXmlStateSystemContainer#ROOT_QUARK} to search
-     *            the full attribute tree
+     *            root quark, use {@link IXmlStateSystemContainer#ROOT_QUARK} to
+     *            search the full attribute tree
      * @return the quark described by attribute or
-     *         {@link IXmlStateSystemContainer#ERROR_QUARK} if quark cannot be found
+     *         {@link IXmlStateSystemContainer#ERROR_QUARK} if quark cannot be
+     *         found
      */
     int getAttributeQuark(@Nullable ITmfEvent event, int startQuark);
+
+    /**
+     * This method gets the quark for this state attribute in the State System.
+     *
+     * Unless this attribute is a location, in which case the quark must exist,
+     * the quark will be added to the state system if the state system is in
+     * builder mode.
+     *
+     * @param event
+     *            The current event being handled
+     * @param startQuark
+     *            root quark, use {@link IXmlStateSystemContainer#ROOT_QUARK} to
+     *            search the full attribute tree
+     * @param args
+     *            The arguments required to get this XML attribute quark The
+     *            arguments used to handle the event
+     * @return the quark described by attribute or
+     *         {@link IXmlStateSystemContainer#ERROR_QUARK} if quark cannot be
+     *         found
+     * @since 2.0
+     */
+    int getAttributeQuark(@Nullable ITmfEvent event, int startQuark, String... args);
 }

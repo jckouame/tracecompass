@@ -23,6 +23,7 @@ import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.tracecompass.internal.tmf.analysis.xml.ui.Activator;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.module.XmlUtils;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.stateprovider.TmfXmlStrings;
+import org.eclipse.tracecompass.tmf.analysis.xml.core.stateprovider.XmlPatternStateSystemModule;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.stateprovider.XmlStateSystemModule;
 import org.eclipse.tracecompass.tmf.core.analysis.IAnalysisModule;
 import org.eclipse.tracecompass.tmf.core.analysis.IAnalysisModuleHelper;
@@ -47,7 +48,12 @@ public class TmfAnalysisModuleHelperXml implements IAnalysisModuleHelper {
      */
     public enum XmlAnalysisModuleType {
         /** Analysis will be of type XmlStateSystemModule */
-        STATE_SYSTEM
+        STATE_SYSTEM,
+        /**
+         * @since 1.1
+         * analysis will be of the type XmlPatternStateSystemModule
+         */
+        FILTER_STATE_SYSTEM
     }
 
     private final File fSourceFile;
@@ -184,6 +190,20 @@ public class TmfAnalysisModuleHelperXml implements IAnalysisModuleHelper {
             ssModule.setAutomatic(true);
 
             break;
+        case FILTER_STATE_SYSTEM:
+            module = new XmlPatternStateSystemModule();
+            XmlPatternStateSystemModule fssModule = (XmlPatternStateSystemModule) module;
+            module.setId(analysisid);
+            fssModule.setXmlFile(new Path(fSourceFile.getAbsolutePath()));
+
+            /*
+             * FIXME: There is no way to know if a module is automatic, so we
+             * default to true
+             */
+            fssModule.setAutomatic(true);
+
+            break;
+
         default:
             break;
 

@@ -99,5 +99,264 @@ public interface TmfXmlStrings {
     String GT = "gt";
     String LE = "le";
     String LT = "lt";
+    /**
+     * @since 2.0
+     */
+    String FILTER = "filter";
+
+    /**
+     * @since 2.0
+     */
+    String EQUAL = "equal";
+
+    /* XML Filter strings */
+    /**
+     * @since 2.0
+     */
+    String FILTER_HANDLER = "filterHandler";
+    /**
+     * @since 2.0
+     */
+    String FILTER_NAME = "filterName";
+
+    /* filter handler strings */
+    /**
+     * @since 2.0
+     */
+    String INITIAL_FSM = "initialFsm";
+    /**
+     * @since 2.0
+     */
+    String TRANSITION_INPUT = "transitionInput";
+    /**
+     * @since 2.0
+     */
+    String EVENT = "event";
+    /**
+     * @since 2.0
+     */
+    String CONDITION_FILTER_BY_EVENT = "conditionFilterEvent";
+    /**
+     * @since 2.0
+     */
+    String ATTRIBUTE = "attribute";
+    /**
+     * @since 2.0
+     */
+    String ACTION = "action";
+    /**
+     * @since 2.0
+     */
+    String EVENT_SEQUENCE = "eventSequence";
+    /**
+     * @since 2.0
+     */
+    String FSM = "fsm";
+    /**
+     * @since 2.0
+     */
+    String STATE_TABLE = "stateTable";
+    /**
+     * @since 2.0
+     */
+    String STATE = "state";
+    /**
+     * @since 2.0
+     */
+    String INITIAL_STATE = "initialState";
+    /**
+     * @since 2.0
+     */
+    String END_STATE = "endState";
+    /**
+     * @since 2.0
+     */
+    String STATE_TRANSITION = "fsmStateTransition";
+    /**
+     * @since 2.0
+     */
+    String STATE_DEFINITION = "stateDefinition";
+    /**
+     * @since 2.0
+     */
+    String TRANSITION = "transition";
+    /**
+     * @since 2.0
+     */
+    String INPUT = "input";
+    /**
+     * @since 2.0
+     */
+    String NEXT = "next";
+    /**
+     * @since 2.0
+     */
+    String FROM = "from";
+    /**
+     * @since 2.0
+     */
+    String TO = "to";
+    /**
+     * @since 2.0
+     */
+    String AUTOMATIC = "automatic";
+    /**
+     * @since 2.0
+     */
+    String ANY = "any";
+    /**
+     * @since 2.0
+     */
+    String STATE_NAME = "stateName";
+
+    /**
+     * @since 2.0
+     */
+    String EMPTY_STRING = "";
+
+    /**
+     * @since 2.0
+     */
+    String CONSTANT_PREFIX = "#";
+
+    /**
+     * @since 2.0
+     */
+    String OTHER = "other";
+
+    /**
+     * @since 2.0
+     */
+    String TIME = "time";
+
+    /**
+     * @since 2.0
+     */
+    String EVENT_NAME = "eventName";
+
+    /**
+     * @since 2.0
+     */
+    String CONDITION_FILTER_BY_TIME = "conditionFilterByTime";
+
+    /**
+     * @since 2.0
+     */
+    String UI = "ui";
+
+    /**
+     * @since 2.0
+     */
+    String ARG = "arg";
+    /**
+     * @since 2.0
+     */
+    String TIME_RANGE = "timeRange";
+    /**
+     * @since 2.0
+     */
+    String ELAPSED_TIME = "elapsedTime";
+
+    /**
+     * @since 2.0
+     */
+    String TIME_CONDITION = "timeCondition";
+    /**
+     * @since 2.0
+     */
+    String LESS = "less";
+    /**
+     * @since 2.0
+     */
+    String MORE = "more";
+    /**
+     * @since 2.0
+     */
+    String IN = "in";
+    /**
+     * @since 2.0
+     */
+    String OUT = "out";
+    /**
+     * @since 2.0
+     */
+    String SINCE = "since";
+    /**
+     * @since 2.0
+     */
+    String NS = "ns";
+    /**
+     * @since 2.0
+     */
+    String MS = "ms";
+    /**
+     * @since 2.0
+     */
+    String S = "s";
+    /**
+     * @since 2.0
+     */
+    String MIN = "min";
+    /**
+     * @since 2.0
+     */
+    String BEGIN = "begin";
+    /**
+     * @since 2.0
+     */
+    String END = "end";
+    /**
+     * @since 2.0
+     */
+    String UNIT = "unit";
+    /**
+     * @since 2.0
+     */
+    String ABANDON_STATE = "abandonState";
+    /**
+     * @since 2.0
+     */
+    String SYN_TYPE = "synType";
+    /**
+     * @since 2.0
+     */
+    String SYN_CONTENT = "synContent";
+    /**
+     * @since 2.0
+     */
+    String SYN_FIELD = "synField";
+    /**
+     * @since 2.0
+     */
+    String FSM_SCHEDULE_ACTION = "fsmScheduleAction";
+    /**
+     * @since 2.0
+     */
+    String SYN_EVENT = "synEvent";
+    /**
+     * @since 2.0
+     */
+    String MULTIPLE = "multiple";
+    /**
+     * @since 2.0
+     */
+    String NEXT_TID = "next_tid";
+    /**
+     * @since 2.0
+     */
+    String DEFINED_FIELD = "definedField";
+    /**
+     * @since 2.0
+     */
+    String SAVE_SPECIAL_FIELDS = "saveSpecialFields";
+    /**
+     * @since 2.0
+     */
+    String CLEAR_SPECIAL_FIELDS = "clearSpecialFields";
+    /**
+     * @since 2.0
+     */
+    String PRECONDITION = "precondition";
+
 
 }

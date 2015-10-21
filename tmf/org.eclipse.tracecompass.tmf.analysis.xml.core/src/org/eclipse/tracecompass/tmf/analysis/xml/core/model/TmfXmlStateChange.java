@@ -111,6 +111,26 @@ public class TmfXmlStateChange {
         fChange.handleEvent(event);
     }
 
+    /**
+     * Execute the state change for an event. If necessary, it validates the
+     * condition and executes the required change.
+     *
+     * @param event
+     *            The event to process
+     * @param arg
+     *            The arguments used to proceed to the state change
+     * @throws AttributeNotFoundException
+     *             Pass through the exception it received
+     * @throws TimeRangeException
+     *             Pass through the exception it received
+     * @throws StateValueTypeException
+     *             Pass through the exception it received
+     * @since 2.0
+     */
+    public void handleEvent(ITmfEvent event, String... arg) throws AttributeNotFoundException, StateValueTypeException, TimeRangeException {
+        fChange.handleEvent(event, arg);
+    }
+
     @Override
     public String toString() {
         return "TmfXmlStateChange: " + fChange; //$NON-NLS-1$
@@ -119,6 +139,7 @@ public class TmfXmlStateChange {
     /* Interface for both private classes to handle the event */
     private interface IXmlStateChange {
         void handleEvent(ITmfEvent event) throws AttributeNotFoundException, StateValueTypeException, TimeRangeException;
+        void handleEvent(ITmfEvent event, String... arg) throws AttributeNotFoundException, StateValueTypeException, TimeRangeException;
     }
 
     /**
@@ -174,6 +195,29 @@ public class TmfXmlStateChange {
             toExecute.handleEvent(event);
         }
 
+
+        @Override
+        public void handleEvent(ITmfEvent event, String... arg) throws AttributeNotFoundException, StateValueTypeException, TimeRangeException {
+            TmfXmlStateChange toExecute = fThenChange;
+            try {
+                if (!fCondition.testForEvent(event)) {
+                    toExecute = fElseChange;
+                }
+            } catch (AttributeNotFoundException e) {
+                /*
+                 * An attribute in the condition did not exist (yet), return
+                 * from the state change
+                 */
+                return;
+            }
+
+            if (toExecute == null) {
+                return;
+            }
+            toExecute.handleEvent(event, arg);
+        }
+
+
         @Override
         public String toString() {
             return "Condition: " + fCondition; //$NON-NLS-1$
@@ -214,6 +258,11 @@ public class TmfXmlStateChange {
         @Override
         public void handleEvent(@NonNull ITmfEvent event) throws AttributeNotFoundException, StateValueTypeException, TimeRangeException {
             fValue.handleEvent(event);
+        }
+
+        @Override
+        public void handleEvent(ITmfEvent event, String... arg) throws AttributeNotFoundException, StateValueTypeException, TimeRangeException {
+            fValue.handleEvent(event, arg);
         }
 
         @Override

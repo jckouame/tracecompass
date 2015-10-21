@@ -51,13 +51,7 @@ import org.w3c.dom.Element;
 public abstract class TmfXmlStateAttribute implements ITmfXmlStateAttribute {
 
     private enum StateAttributeType {
-        NONE,
-        CONSTANT,
-        EVENTFIELD,
-        QUERY,
-        LOCATION,
-        SELF,
-        EVENTNAME
+        NONE, CONSTANT, EVENTFIELD, QUERY, LOCATION, SELF, EVENTNAME
     }
 
     /** Type of attribute */
@@ -70,6 +64,8 @@ public abstract class TmfXmlStateAttribute implements ITmfXmlStateAttribute {
     private final List<ITmfXmlStateAttribute> fQueryList = new LinkedList<>();
 
     private final IXmlStateSystemContainer fContainer;
+
+    private final String REGEX = "_"; //$NON-NLS-1$
 
     /**
      * Constructor
@@ -332,6 +328,162 @@ public abstract class TmfXmlStateAttribute implements ITmfXmlStateAttribute {
             case SELF:
                 return startQuark;
             case NONE:
+            default:
+                return startQuark;
+            }
+        } catch (AttributeNotFoundException ae) {
+            /*
+             * This can be happen before the creation of the node for a query in
+             * the state system. Example : current thread before a sched_switch
+             */
+            return IXmlStateSystemContainer.ERROR_QUARK;
+        } catch (StateValueTypeException e) {
+            /*
+             * This would happen if we were trying to push/pop attributes not of
+             * type integer. Which, once again, should never happen.
+             */
+            Activator.logError("StateValueTypeException", e); //$NON-NLS-1$
+            return IXmlStateSystemContainer.ERROR_QUARK;
+        }
+    }
+
+    /**
+     * @since 2.0
+     */
+    @Override
+    public int getAttributeQuark(@Nullable ITmfEvent event, int startQuark, String... arg) {
+        ITmfStateSystem ss = getStateSystem();
+
+        String name = fName;
+        if (name != null && name.startsWith(TmfXmlStrings.CONSTANT_PREFIX) && name.substring(1).startsWith(TmfXmlStrings.ARG)) {
+            int index = Integer.parseInt(name.split(REGEX)[1]);
+            if (index < arg.length) {
+                name = arg[index];
+            } else {
+                throw new IllegalArgumentException("Invalid argument : argument " + index + "does not exist. The maximum number possible is" + arg.length); //$NON-NLS-1$ //$NON-NLS-2$
+            }
+        }
+
+        try {
+            switch (fType) {
+            case CONSTANT: {
+                int quark;
+                if (startQuark == IXmlStateSystemContainer.ROOT_QUARK) {
+                    quark = getQuarkAbsoluteAndAdd(name);
+                } else {
+                    quark = getQuarkRelativeAndAdd(startQuark, name);
+                }
+                return quark;
+            }
+            case EVENTFIELD: {
+                int quark = IXmlStateSystemContainer.ERROR_QUARK;
+                if (event == null) {
+                    Activator.logWarning("XML State attribute: looking for an event field, but event is null"); //$NON-NLS-1$
+                    return quark;
+                }
+                if (name == null) {
+                    throw new IllegalStateException();
+                }
+                if (name.equals(TmfXmlStrings.CPU)) {
+                    /* See if the event advertises a CPU aspect */
+                    Object cpuObj = TmfTraceUtils.resolveEventAspectOfClassForEvent(
+                            event.getTrace(), TmfCpuAspect.class, event);
+                    if (cpuObj != null) {
+                        Integer cpu = (Integer) cpuObj;
+                        quark = getQuarkRelativeAndAdd(startQuark, cpu.toString());
+                    }
+                } else {
+                    final ITmfEventField content = event.getContent();
+                    /* stop if the event field doesn't exist */
+                    if (content.getField(name) == null) {
+                        return IXmlStateSystemContainer.ERROR_QUARK;
+                    }
+
+                    Object field = content.getField(name).getValue();
+
+                    if (field instanceof String) {
+                        String fieldString = (String) field;
+                        quark = getQuarkRelativeAndAdd(startQuark, fieldString);
+                    } else if (field instanceof Long) {
+                        Long fieldLong = (Long) field;
+                        quark = getQuarkRelativeAndAdd(startQuark, fieldLong.toString());
+                    } else if (field instanceof Integer) {
+                        Integer fieldInterger = (Integer) field;
+                        quark = getQuarkRelativeAndAdd(startQuark, fieldInterger.toString());
+                    }
+                }
+                return quark;
+            }
+            case QUERY: {
+                int quark;
+                ITmfStateValue value = TmfStateValue.nullValue();
+                int quarkQuery = IXmlStateSystemContainer.ROOT_QUARK;
+
+                for (ITmfXmlStateAttribute attrib : fQueryList) {
+                    quarkQuery = attrib.getAttributeQuark(event, quarkQuery, arg);
+                    if (quarkQuery == IXmlStateSystemContainer.ERROR_QUARK) {
+                        break;
+                    }
+                }
+
+                // the query may fail: for example CurrentThread if there
+                // has not been a sched_switch event
+                if (quarkQuery != IXmlStateSystemContainer.ERROR_QUARK && ss != null) {
+                    value = ss.queryOngoingState(quarkQuery);
+                } else {
+                    throw new IllegalStateException();
+                }
+
+                switch (value.getType()) {
+                case INTEGER: {
+                    int result = value.unboxInt();
+                    quark = getQuarkRelativeAndAdd(startQuark, String.valueOf(result));
+                    break;
+                }
+                case LONG: {
+                    long result = value.unboxLong();
+                    quark = getQuarkRelativeAndAdd(startQuark, String.valueOf(result));
+                    break;
+                }
+                case STRING: {
+                    String result = value.unboxStr();
+                    quark = getQuarkRelativeAndAdd(startQuark, result);
+                    break;
+                }
+                case DOUBLE:
+                case NULL:
+                default:
+                    quark = IXmlStateSystemContainer.ERROR_QUARK; // error
+                    break;
+                }
+                return quark;
+            }
+            case LOCATION: {
+                int quark = startQuark;
+                String idLocation = name;
+
+                /* TODO: Add a fContainer.getLocation(id) method */
+                for (TmfXmlLocation location : fContainer.getLocations()) {
+                    if (location.getId().equals(idLocation)) {
+                        quark = location.getLocationQuark(event, quark, arg);
+                        if (quark == IXmlStateSystemContainer.ERROR_QUARK) {
+                            break;
+                        }
+                    }
+                }
+                return quark;
+            }
+            case SELF:
+                return startQuark;
+            case NONE:
+            case EVENTNAME:
+                int quark = IXmlStateSystemContainer.ERROR_QUARK;
+                if (event == null) {
+                    Activator.logWarning("XML State attribute: looking for an eventname, but event is null"); //$NON-NLS-1$
+                    return quark;
+                }
+                quark = getQuarkRelativeAndAdd(startQuark, event.getType().getName());
+                return quark;
             default:
                 return startQuark;
             }

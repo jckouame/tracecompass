@@ -37,11 +37,15 @@ public interface ITmfXmlStateValue {
      * @param event
      *            The current event or <code>null</code> if no event is
      *            available.
+     * @param args
+     *            The arguments required to get the value of this XML state
+     *            value
      * @return the {@link ITmfStateValue}
      * @throws AttributeNotFoundException
      *             May be thrown by the state system during the query
+     * @since 2.0
      */
-    ITmfStateValue getValue(@Nullable ITmfEvent event) throws AttributeNotFoundException;
+    ITmfStateValue getValue(@Nullable ITmfEvent event, String... args) throws AttributeNotFoundException;
 
     /**
      * Get the value of the event field that is the path of this state value
@@ -73,5 +77,23 @@ public interface ITmfXmlStateValue {
      *             Pass through the exception it received
      */
     void handleEvent(ITmfEvent event) throws AttributeNotFoundException, StateValueTypeException, TimeRangeException;
+
+    /**
+     * Handles an event, by setting the value of the attribute described by the
+     * state attribute path in the state system.
+     *
+     * @param event
+     *            The event to process
+     * @param arg
+     *            The arguments used to handle the event
+     * @throws AttributeNotFoundException
+     *             Pass through the exception it received
+     * @throws TimeRangeException
+     *             Pass through the exception it received
+     * @throws StateValueTypeException
+     *             Pass through the exception it received
+     * @since 2.0
+     */
+    void handleEvent(ITmfEvent event, String... arg) throws AttributeNotFoundException, StateValueTypeException, TimeRangeException;
 
 }

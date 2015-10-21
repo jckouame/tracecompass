@@ -89,6 +89,31 @@ public class TmfXmlLocation {
      *            The starting quark for relative search, use
      *            {@link IXmlStateSystemContainer#ROOT_QUARK} for the root of
      *            the attribute tree
+     * @param args
+     *            The arguments used to get the location quark
+     * @return The quark at the leaf of the path
+     * @since 2.0
+     */
+    public int getLocationQuark(@Nullable ITmfEvent event, int startQuark, String... args) {
+        int quark = startQuark;
+        for (ITmfXmlStateAttribute attrib : fPath) {
+            quark = attrib.getAttributeQuark(event, quark, args);
+            if (quark == IXmlStateSystemContainer.ERROR_QUARK) {
+                break;
+            }
+        }
+        return quark;
+    }
+
+    /**
+     * Get the quark for the path represented by this location
+     *
+     * @param event
+     *            The event being handled
+     * @param startQuark
+     *            The starting quark for relative search, use
+     *            {@link IXmlStateSystemContainer#ROOT_QUARK} for the root of
+     *            the attribute tree
      * @return The quark at the leaf of the path
      */
     public int getLocationQuark(@Nullable ITmfEvent event, int startQuark) {

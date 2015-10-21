@@ -239,7 +239,7 @@ public class TmfXmlReadWriteStateValue extends TmfXmlStateValue {
         }
 
         @Override
-        public ITmfStateValue getValue(@Nullable ITmfEvent event) {
+        public ITmfStateValue getValue(@Nullable ITmfEvent event, String... arg) {
             return fValue;
         }
 
@@ -269,7 +269,7 @@ public class TmfXmlReadWriteStateValue extends TmfXmlStateValue {
         }
 
         @Override
-        public ITmfStateValue getValue(@Nullable ITmfEvent event) {
+        public ITmfStateValue getValue(@Nullable ITmfEvent event, String... arg) {
             if (event == null) {
                 Activator.logWarning("XML State value: requested an event field, but event is null"); //$NON-NLS-1$
                 return TmfStateValue.nullValue();
@@ -297,7 +297,7 @@ public class TmfXmlReadWriteStateValue extends TmfXmlStateValue {
     private class TmfXmlStateValueEventName extends TmfXmlStateValueTypeReadWrite {
 
         @Override
-        public ITmfStateValue getValue(@Nullable ITmfEvent event) {
+        public ITmfStateValue getValue(@Nullable ITmfEvent event, String... arg) {
             if (event == null) {
                 Activator.logWarning("XML State value: request event name, but event is null"); //$NON-NLS-1$
                 return TmfStateValue.nullValue();
@@ -311,7 +311,7 @@ public class TmfXmlReadWriteStateValue extends TmfXmlStateValue {
     private class TmfXmlStateValueDelete extends TmfXmlStateValueTypeReadWrite {
 
         @Override
-        public ITmfStateValue getValue(@Nullable ITmfEvent event) throws AttributeNotFoundException {
+        public ITmfStateValue getValue(@Nullable ITmfEvent event, String... arg) throws AttributeNotFoundException {
             return TmfStateValue.nullValue();
         }
 
@@ -337,7 +337,7 @@ public class TmfXmlReadWriteStateValue extends TmfXmlStateValue {
         }
 
         @Override
-        public ITmfStateValue getValue(@Nullable ITmfEvent event) throws AttributeNotFoundException {
+        public ITmfStateValue getValue(@Nullable ITmfEvent event, String... arg) throws AttributeNotFoundException {
             /* Query the state system for the value */
             ITmfStateValue value = TmfStateValue.nullValue();
             int quarkQuery = IXmlStateSystemContainer.ROOT_QUARK;
@@ -347,7 +347,7 @@ public class TmfXmlReadWriteStateValue extends TmfXmlStateValue {
             }
 
             for (ITmfXmlStateAttribute attribute : fQueryValue) {
-                quarkQuery = attribute.getAttributeQuark(event, quarkQuery);
+                quarkQuery = attribute.getAttributeQuark(event, quarkQuery, arg);
                 if (quarkQuery == IXmlStateSystemContainer.ERROR_QUARK) {
                     /* the query is not valid, we stop the state change */
                     break;

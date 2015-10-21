@@ -50,7 +50,11 @@ public abstract class AbstractSegmentStoreAnalysisModule extends TmfAbstractAnal
 
     private final ListenerList fListeners = new ListenerList(ListenerList.IDENTITY);
 
-    private @Nullable ISegmentStore<ISegment> fSegmentStore;
+    /**
+     * Container to store the segments
+     */
+    @Nullable
+    protected ISegmentStore<ISegment> fSegmentStore;
 
     private @Nullable ITmfEventRequest fOngoingRequest = null;
 

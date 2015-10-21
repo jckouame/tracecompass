@@ -55,6 +55,7 @@ import org.eclipse.tracecompass.tmf.core.trace.experiment.TmfExperiment;
  * (defaults to the analysis'ID)
  *
  * @author Geneviève Bastien
+ * @since 2.0
  */
 public abstract class TmfStateSystemAnalysisModule extends TmfAbstractAnalysisModule
         implements ITmfAnalysisModuleWithStateSystems {
@@ -243,7 +244,10 @@ public abstract class TmfStateSystemAnalysisModule extends TmfAbstractAnalysisMo
      * exists, it will be opened directly. If not, it will be created from
      * scratch.
      */
-    private void createFullHistory(String id, ITmfStateProvider provider, File htFile) throws TmfTraceException {
+    /**
+     * @since 2.0
+     */
+    protected void createFullHistory(String id, ITmfStateProvider provider, File htFile) throws TmfTraceException {
 
         /* If the target file already exists, do not rebuild it uselessly */
         // TODO for now we assume it's complete. Might be a good idea to check
@@ -297,7 +301,10 @@ public abstract class TmfStateSystemAnalysisModule extends TmfAbstractAnalysisMo
      * underneath, (which are much slower), so this might not be a good fit for
      * a use case where you have to do lots of single queries.
      */
-    private void createPartialHistory(String id, ITmfStateProvider provider, File htPartialFile)
+    /**
+     * @since 2.0
+     */
+    protected void createPartialHistory(String id, ITmfStateProvider provider, File htPartialFile)
             throws TmfTraceException {
         /*
          * The order of initializations is very tricky (but very important!)
@@ -366,7 +373,10 @@ public abstract class TmfStateSystemAnalysisModule extends TmfAbstractAnalysisMo
      * no history intervals will be saved anywhere, and as such only
      * {@link ITmfStateSystem#queryOngoingState} will be available.
      */
-    private void createNullHistory(String id, ITmfStateProvider provider) {
+    /**
+     * @since 2.0
+     */
+    protected void createNullHistory(String id, ITmfStateProvider provider) {
         IStateHistoryBackend backend = StateHistoryBackendFactory.createNullBackend(id);
         fHtBackend = backend;
         fStateSystem = StateSystemFactory.newStateSystem(backend);
@@ -379,7 +389,10 @@ public abstract class TmfStateSystemAnalysisModule extends TmfAbstractAnalysisMo
      * only be done for very small state system, and will be naturally limited
      * to 2^31 intervals.
      */
-    private void createInMemoryHistory(String id, ITmfStateProvider provider) {
+    /**
+     * @since 2.0
+     */
+    protected void createInMemoryHistory(String id, ITmfStateProvider provider) {
         IStateHistoryBackend backend = StateHistoryBackendFactory.createInMemoryBackend(id, provider.getStartTime());
         fHtBackend = backend;
         fStateSystem = StateSystemFactory.newStateSystem(backend);

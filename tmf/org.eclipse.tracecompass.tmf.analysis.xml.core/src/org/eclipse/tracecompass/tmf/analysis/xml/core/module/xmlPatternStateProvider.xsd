@@ -1,0 +1,349 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- ***************************************************************************
+ * Copyright (c) 2015 École Polytechnique de Montréal
+ *
+ * All rights reserved. This program and the accompanying materials are
+ * made available under the terms of the Eclipse Public License v1.0 which
+ * accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *   Jean-Christian Kouamé - Initial API and implementation
+ *************************************************************************** -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	attributeFormDefault="unqualified" elementFormDefault="qualified">
+
+	<xs:complexType name="filter">
+		<xs:annotation>
+			<xs:documentation>Declares a data-driven state provider which defines how events change the state of attributes of the system. Each state provider defined in XML will become an analysis in TMF.</xs:documentation></xs:annotation>
+		<xs:sequence maxOccurs="1" minOccurs="1">
+			<xs:element maxOccurs="1" minOccurs="0" name="head" type="headFilter" >
+				<xs:annotation>
+					<xs:documentation>Provide meta-information on this state provider, like labels and applicable trace types.</xs:documentation></xs:annotation></xs:element>
+			<xs:element maxOccurs="unbounded" minOccurs="0" name="definedField" type="definedField" />
+			<xs:element maxOccurs="unbounded" minOccurs="0" name="definedValue" type="definedValue" >
+				<xs:annotation>
+					<xs:documentation>Define a value that maps a string used in the state provider to a numbered value.</xs:documentation></xs:annotation></xs:element>
+			<xs:element maxOccurs="unbounded" minOccurs="0" name="location" type="location" >
+				<xs:annotation>
+					<xs:documentation>Declare shortcuts to frequently used attribute/data locations. For instance, if a path to an often-used attribute is CPUs/{event.some_field}/Threads/Status, it may be a good idea to put this path in a location and then use the location name in the event handlers.</xs:documentation></xs:annotation></xs:element>
+			<xs:element maxOccurs="unbounded" minOccurs="1" name="filterHandler" type="filterHandler" >
+				<xs:annotation>
+					<xs:documentation>Define how a given event will modify the state system being built. For each event in the trace that causes a state change, a event handler should be defined.</xs:documentation></xs:annotation></xs:element>
+		</xs:sequence>
+		<xs:attribute name="id" type="xs:string" use="required" >
+			<xs:annotation>
+				<xs:documentation>The unique ID of this state provider. It will be used to identify the analysis that will be built from this state provider.</xs:documentation></xs:annotation></xs:attribute>
+		<xs:attribute name="version" type="xs:integer" use="required" >
+			<xs:annotation>
+				<xs:documentation>The version ID of this state provider. Whenever the state provider changes so that the resulting state system is different from previous versions, this version number should be bumped.</xs:documentation></xs:annotation></xs:attribute>
+	</xs:complexType>
+
+	<xs:complexType name="headFilter">
+		<xs:annotation>
+			<xs:documentation>Declares the meta-information that can be defined for an XML state provider.</xs:documentation></xs:annotation>
+		<xs:sequence>
+			<xs:element maxOccurs="unbounded" minOccurs="0" name="traceType">
+				<xs:annotation>
+					<xs:documentation>Indicate that the state provider applies to a given trace type.</xs:documentation></xs:annotation>
+				<xs:complexType>
+					<xs:attribute name="id" use="required" >
+						<xs:annotation>
+							<xs:documentation>The ID of the trace type, as declared in a org.eclipse.linuxtools.tmf.core.tracetype extension point or a custom trace parser. For example: "org.eclipse.linuxtools.lttng2.kernel.tracetype" or "org.eclipse.linuxtools.lttng2.ust.tracetype" for respectively LTTng Kernel and LTTng UST traces.</xs:documentation></xs:annotation></xs:attribute>
+				</xs:complexType>
+			</xs:element>
+			<xs:element maxOccurs="1" minOccurs="0" name="label">
+				<xs:annotation>
+					<xs:documentation>Add a label to the state provider. If provided, this text will be the name of the analysis that the user will see in TMF.</xs:documentation></xs:annotation>
+				<xs:complexType>
+					<xs:attribute name="value" >
+						<xs:annotation>
+							<xs:documentation>The text to name this state provider (and the analysis it will generate).</xs:documentation></xs:annotation></xs:attribute>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	
+	<xs:complexType name="definedField">
+		<xs:attribute name="name" type="xs:string" use="required"/>
+		<xs:attribute name="id" type="xs:string" use="required"/>
+	</xs:complexType>
+
+	<xs:complexType name="filterHandler">
+		<xs:annotation>
+			<xs:documentation>Define how an event modifies the state of the system. There should be one event handler for each event causing a state change.</xs:documentation></xs:annotation>
+		<xs:sequence>
+			<xs:element maxOccurs="1" minOccurs="1" name="initialFsm" type="initialFsm" />
+			<xs:element maxOccurs="unbounded" minOccurs="1" name="transitionInput" type="transitionInput" >
+				<xs:annotation>
+					<xs:documentation>Define how the state system is modified by the event. An event may cause more than one state change.</xs:documentation></xs:annotation></xs:element>
+			<xs:element maxOccurs="unbounded" minOccurs="1" name="action" type="action" />
+			<xs:element maxOccurs="unbounded" minOccurs="1" name="fsm" type="fsm" />
+		</xs:sequence>
+		<xs:attribute name="filterName" type="xs:string" use="required" >
+			<xs:annotation>
+				<xs:documentation>Name of the event that causes a state change.</xs:documentation></xs:annotation></xs:attribute>
+	</xs:complexType>
+
+	<xs:complexType name="initialFsm">
+		<xs:attribute name="id" use="required" >
+			<xs:annotation>
+				<xs:documentation>The ID of the trace type, as declared in a org.eclipse.linuxtools.tmf.core.tracetype extension point or a custom trace parser. For example: "org.eclipse.linuxtools.lttng2.kernel.tracetype" or "org.eclipse.linuxtools.lttng2.ust.tracetype" for respectively LTTng Kernel and LTTng UST traces.</xs:documentation></xs:annotation></xs:attribute>
+	</xs:complexType>
+	
+	<xs:complexType name="transitionInput">
+		<xs:annotation>
+			<xs:documentation>Define a change of state in the state system being built.</xs:documentation></xs:annotation>
+		<xs:choice maxOccurs="1" minOccurs="1">
+			<xs:sequence maxOccurs="1" minOccurs="1">
+				<xs:annotation>
+					<xs:documentation>Describe a single attribute assignation. Simply put: a state change where path/to/attribute=value.</xs:documentation></xs:annotation>
+				<xs:element maxOccurs="1" minOccurs="1" name="event" type="event" />
+			</xs:sequence>
+			<xs:sequence maxOccurs="1" minOccurs="1">
+				<xs:annotation>
+					<xs:documentation>Describe a conditional state change, where different path conditions may lead to different state changes.</xs:documentation></xs:annotation>
+				<xs:element maxOccurs="1" minOccurs="1" name="time" type="timeCondition" >
+					<xs:annotation>
+						<xs:documentation>Define the condition to verify.</xs:documentation></xs:annotation></xs:element>
+			</xs:sequence>
+		</xs:choice>
+		<xs:attribute name="id" type="xs:string" use="required" />
+	</xs:complexType>
+	
+	<xs:complexType name="action">
+		<xs:sequence maxOccurs="unbounded" minOccurs="1">
+			<xs:choice>
+				<xs:element maxOccurs="unbounded" minOccurs="0" name="stateChange" type="stateChange" />
+				<xs:element maxOccurs="unbounded" minOccurs="0" name="synEvent" type="synEvent"/>
+				<xs:element maxOccurs="1" minOccurs="0" name="fsmScheduleAction" type="fsmScheduleAction"/>
+				<xs:element maxOccurs="unbounded" minOccurs="0" name="ui" type="ui"/>
+				<xs:element maxOccurs="unbounded" minOccurs="0" name="action" type="action"/>
+			</xs:choice>
+		</xs:sequence>
+		<xs:attribute name="id" type="xs:string" use="required" >
+			<xs:annotation>
+				<xs:documentation>Name of the event that causes a state change.</xs:documentation></xs:annotation></xs:attribute>
+	</xs:complexType>
+	
+	<xs:complexType name="fsm">
+		<xs:annotation>
+			<xs:documentation>Define how an event modifies the state of the system. There should be one event handler for each event causing a state change.</xs:documentation></xs:annotation>
+		<xs:sequence>
+			<xs:element maxOccurs="unbounded" minOccurs="0" name="precondition" type="precondition" />
+			<xs:element maxOccurs="1" minOccurs="1" name="stateTable" type="stateTable" />
+			<xs:element maxOccurs="1" minOccurs="1" name="initialState" type="specialState" />
+			<xs:element maxOccurs="1" minOccurs="0" name="endState" type="specialState" />
+			<xs:element maxOccurs="1" minOccurs="0" name="abandonState" type="specialState" />
+		</xs:sequence>
+		<xs:attribute name="id" type="xs:string" use="required" />
+		<xs:attribute name="multiple" type="xs:boolean" />
+	</xs:complexType>
+	
+	<xs:complexType name="specialState">
+		<xs:attribute name="id" type="xs:string" use="required" />
+	</xs:complexType>
+				
+	<xs:complexType name="event">
+		<xs:sequence>
+			<xs:element maxOccurs="1" minOccurs="0" name="if" type="eventCondition"></xs:element>
+		</xs:sequence>
+		<xs:attribute name="eventName" type="xs:string" use="required" />
+		<xs:attribute name="nameStartWith" type="xs:string" use="optional" default="false" />
+		<xs:anyAttribute />
+	</xs:complexType>
+	
+	<xs:complexType name="eventCondition">
+		<xs:annotation>
+			<xs:documentation>Define a conditional statement with only one child. From this element, a condition may be composed of other conditional elements to create more complex conditional statements.</xs:documentation></xs:annotation>
+		<xs:choice maxOccurs="1" minOccurs="0">
+			<xs:element name="conditionFilterEvent" type="conditionFilterEvent" >
+				<xs:annotation>
+					<xs:documentation>Define a condition element, in the form "if (some_path == value)".</xs:documentation></xs:annotation></xs:element>
+			<xs:element name="not" type="eventCondition" >
+				<xs:annotation>
+					<xs:documentation>Negate the result of the following condition, allowing statements of the form "if (!cond)".</xs:documentation></xs:annotation></xs:element>
+			<xs:element name="equal" type="eventCondition" >
+				<xs:annotation>
+					<xs:documentation>Negate the result of the following condition, allowing statements of the form "if (!cond)".</xs:documentation></xs:annotation></xs:element>
+			<xs:element name="and" type="conditionMultiple" >
+				<xs:annotation>
+					<xs:documentation>ANDs 2 conditional statements, allowing statements of the form "if (condA AND condB)"</xs:documentation></xs:annotation></xs:element>
+			<xs:element name="or" type="conditionMultiple" >
+				<xs:annotation>
+					<xs:documentation>ORs 2 conditional statements, allowing statements of the form "if (condA OR condB)"</xs:documentation></xs:annotation></xs:element>
+		</xs:choice>
+	</xs:complexType>
+	
+	<xs:complexType name="conditionFilterEvent">
+		<xs:choice>
+			<xs:sequence >
+				<xs:choice maxOccurs="1" minOccurs="1">
+					<xs:element maxOccurs="unbounded" minOccurs="1" name="stateAttribute" type="stateAttribute" >
+						<xs:annotation>
+							<xs:documentation>Compare the current value of an attribute of the state system.</xs:documentation></xs:annotation></xs:element>
+					<xs:element maxOccurs="1" minOccurs="1" name="field" type="eventField" >
+						<xs:annotation>
+							<xs:documentation>Compare the value of an event field.</xs:documentation></xs:annotation></xs:element>
+				</xs:choice>
+				<xs:element maxOccurs="1" minOccurs="1" name="stateValue" type="stateValue" >
+					<xs:annotation>
+						<xs:documentation>Define the value to compare to.</xs:documentation></xs:annotation></xs:element>
+			</xs:sequence>
+	
+			<xs:sequence>
+				<xs:element maxOccurs="2" minOccurs="2" name="stateValue" type="stateValue"/>
+			</xs:sequence>
+		</xs:choice>
+		<xs:anyAttribute />
+	</xs:complexType>
+	
+	<xs:complexType name="ui">
+		<xs:sequence maxOccurs="1" minOccurs="1">
+			<xs:element maxOccurs="1" minOccurs="0" name="eventSequence" type="eventSequence"/>
+			<xs:element maxOccurs="1" minOccurs="0" name="timeRange" type="timeRange"/>
+		</xs:sequence>
+		<xs:attribute name="type" type="xs:string" use="optional" />
+		<xs:attribute name="arg" type="xs:string" use="optional"/>
+	</xs:complexType>
+	
+	<xs:complexType name="fsmScheduleAction">
+		<xs:attribute name="id" type="xs:string" use="required"/>
+	</xs:complexType>
+	
+	<xs:complexType name="eventSequence">
+		<xs:attribute name="from" type="xs:string" use="required" />
+		<xs:attribute name="to" type="xs:string" use="required" />
+		<xs:attribute name="type" type="xs:string" use="optional" />
+	</xs:complexType>
+	
+	<xs:complexType name="timeRange">
+		<xs:attribute name="type" type="xs:string" use="required" />
+		<xs:attribute name="start" type="xs:string" use="required" />
+		<xs:attribute name="end" type="xs:string" use="required" />
+	</xs:complexType>
+	
+	<xs:complexType name="elapsedTime">
+		<xs:attribute name="type" type="xs:string" use="required" />
+		<xs:attribute name="since" type="xs:string" use="required" />
+		<xs:attribute name="value" type="xs:string" use="required" />
+	</xs:complexType>
+	
+	<xs:complexType name="conditionFilterByTime">
+		<xs:sequence>
+			<xs:element maxOccurs="1" minOccurs="1" name="timeCondition">
+				<xs:complexType>
+					<xs:choice>
+						<xs:element maxOccurs="1" minOccurs="1" name="timeRange">
+							<xs:complexType>
+								<xs:choice>
+									<xs:element name="in" type="timeRangeSingleCondition"/>
+									<xs:element name="out" type="timeRangeSingleCondition"/>
+								</xs:choice>
+								<xs:attribute name="unit" type="xs:string" use="required" />
+							</xs:complexType>
+						</xs:element>
+						<xs:element maxOccurs="1" minOccurs="1" name="elapsedTime">
+							<xs:complexType>
+								<xs:choice>
+									<xs:element maxOccurs="1" minOccurs="1" name="less" type="elapsedTimeSingleCondition"/>
+									<xs:element maxOccurs="1" minOccurs="1" name="equal" type="elapsedTimeSingleCondition"/>
+									<xs:element maxOccurs="1" minOccurs="1" name="more" type="elapsedTimeSingleCondition"/>
+								</xs:choice>
+								<xs:attribute name="unit" type="xs:string" use="required" />
+							</xs:complexType>
+						</xs:element>
+					</xs:choice>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	
+	<xs:complexType name="timeRangeSingleCondition">
+		<xs:attribute name="begin" type="xs:string" use="required" />
+		<xs:attribute name="end" type="xs:string" use="required" />
+	</xs:complexType>
+	
+	<xs:complexType name="elapsedTimeSingleCondition">
+		<xs:attribute name="since" type="xs:string" use="required" />
+		<xs:attribute name="value" type="xs:string" use="required" />
+	</xs:complexType>
+	
+	<xs:complexType name="timeCondition">
+		<xs:choice maxOccurs="1" minOccurs="1">
+			<xs:element name="conditionFilterByTime" type="conditionFilterByTime" >
+				<xs:annotation>
+					<xs:documentation>Define a condition element, in the form "if (some_path == value)".</xs:documentation></xs:annotation></xs:element>
+			<xs:element name="not" type="timeCondition" >
+				<xs:annotation>
+					<xs:documentation>Negate the result of the following condition, allowing statements of the form "if (!cond)".</xs:documentation></xs:annotation></xs:element>
+			<xs:element name="and" type="conditionMultiple" >
+				<xs:annotation>
+					<xs:documentation>ANDs 2 conditional statements, allowing statements of the form "if (condA AND condB)"</xs:documentation></xs:annotation></xs:element>
+			<xs:element name="or" type="conditionMultiple" >
+				<xs:annotation>
+					<xs:documentation>ORs 2 conditional statements, allowing statements of the form "if (condA OR condB)"</xs:documentation></xs:annotation></xs:element>
+		</xs:choice>
+	</xs:complexType>
+	
+	<xs:complexType name="stateTable">
+		<xs:sequence>
+			<xs:element maxOccurs="unbounded" minOccurs="1" name="stateDefinition">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element maxOccurs="unbounded" minOccurs="1" name="transition" >
+							<xs:complexType>
+								<xs:attribute name="input" type="xs:string" use="required" />
+								<xs:attribute name="next" type="xs:string" use="required" />
+								<xs:attribute name="action" type="xs:string" use="optional"/>
+								<xs:attribute name="saveSpecialFields" type="xs:string" use="optional" />
+								<xs:attribute name="clearSpecialFields" type="xs:string" use="optional"/>
+							</xs:complexType>
+						</xs:element>
+					</xs:sequence>
+					<xs:attribute name="name" type="xs:string" use="required" />
+					<xs:attribute name="automatic" type="xs:string" use="optional" />
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	
+	<xs:complexType name="synEvent">
+		<xs:sequence maxOccurs="1" minOccurs="1">
+			<xs:element name="synType" >
+				<xs:complexType>
+					<xs:sequence maxOccurs="1" minOccurs="0">
+						<xs:element maxOccurs="1" name="eventName">
+							<xs:complexType>
+								<xs:sequence>
+									<xs:element maxOccurs="1" minOccurs="1" name="stateValue" type="stateValue"/>
+								</xs:sequence>
+							</xs:complexType>
+						</xs:element>
+					</xs:sequence>
+					<xs:attribute name="eventName" type="xs:string" use="optional" />
+				</xs:complexType>
+			</xs:element>
+			<xs:element minOccurs="0" name="synContent">
+				<xs:complexType>
+					<xs:sequence maxOccurs="1" minOccurs="1">
+						<xs:element maxOccurs="unbounded" minOccurs="1" name="synField" type="synField" />
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	
+	<xs:complexType name="synField">
+		<xs:sequence maxOccurs="unbounded" minOccurs="0">
+			<xs:element maxOccurs="1" minOccurs="0" name="stateValue" type="stateValue" />
+		</xs:sequence>
+		<xs:attribute name="name" type="xs:string" use="required"/>
+		<xs:attribute name="type" type="xs:string" use="required" />
+		<xs:attribute name="value" type="xs:string" use="optional" />
+	</xs:complexType>
+	
+	<xs:complexType name="precondition">
+		<xs:attribute name="input" type="xs:string" use="optional"/>
+	</xs:complexType>
+</xs:schema>

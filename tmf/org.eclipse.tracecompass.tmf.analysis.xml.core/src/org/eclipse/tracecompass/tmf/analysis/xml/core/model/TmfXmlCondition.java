@@ -56,6 +56,8 @@ public class TmfXmlCondition {
     private final LogicalOperator fOperator;
     private final IXmlStateSystemContainer fContainer;
     private final ConditionOperator fConditionOperator;
+    private ConditionType fType;
+    private @Nullable TmfXmlTimestampCondition fTimeCondition;
 
     private enum LogicalOperator {
         NONE,
@@ -72,6 +74,12 @@ public class TmfXmlCondition {
         GT,
         LE,
         LT
+    }
+
+    private enum ConditionType {
+        EVENT,
+        TIME,
+        NONE
     }
 
     /**
@@ -112,7 +120,9 @@ public class TmfXmlCondition {
 
         switch (rootNode.getNodeName()) {
         case TmfXmlStrings.CONDITION:
+        case TmfXmlStrings.CONDITION_FILTER_BY_EVENT:
             fOperator = LogicalOperator.NONE;
+            fType = ConditionType.EVENT;
             if (size == 1) {
                 fConditionOperator = getConditionOperator(rootNode);
                 getStateValuesForXmlCondition(modelFactory, NonNullUtils.checkNotNull(childElements));
@@ -122,14 +132,30 @@ public class TmfXmlCondition {
                 fStateValues.add(modelFactory.createStateValue(NonNullUtils.checkNotNull(childElements.get(1)), fContainer, new ArrayList<ITmfXmlStateAttribute>()));
             }
             break;
+        case TmfXmlStrings.CONDITION_FILTER_BY_TIME:
+            Element timeCondition = firstElement;
+
+            fOperator = LogicalOperator.NONE;
+            fType = ConditionType.TIME;
+            fConditionOperator = ConditionOperator.EQ;
+            if (childElements.size() == 1) {
+                if (firstElement.getNodeName().equals(TmfXmlStrings.TIME_CONDITION)) {
+                    fTimeCondition = modelFactory.createTimestampsCondition(timeCondition, fContainer);
+                } else {
+                    throw new IllegalArgumentException("TmfXmlCondtion: Invalid condition"); //$NON-NLS-1$
+                }
+            }
+            break;
         case TmfXmlStrings.NOT:
             fOperator = LogicalOperator.NOT;
+            fType = ConditionType.NONE;
             fConditionOperator = ConditionOperator.NONE;
-            Element element = firstElement;
+            Element element = NonNullUtils.checkNotNull(childElements.get(0));
             fConditions.add(modelFactory.createCondition(element, fContainer));
             break;
         case TmfXmlStrings.AND:
             fOperator = LogicalOperator.AND;
+            fType = ConditionType.NONE;
             fConditionOperator = ConditionOperator.NONE;
             for (Element condition : childElements) {
                 if (condition == null) {
@@ -140,6 +166,7 @@ public class TmfXmlCondition {
             break;
         case TmfXmlStrings.OR:
             fOperator = LogicalOperator.OR;
+            fType = ConditionType.NONE;
             fConditionOperator = ConditionOperator.NONE;
             for (Element condition : childElements) {
                 if (condition == null) {
@@ -206,45 +233,60 @@ public class TmfXmlCondition {
      *
      * @param event
      *            The event on which to test the condition
+     * @param args
+     *            The arguments necessary to validate the condition
      * @return Whether the condition is true or not
      * @throws AttributeNotFoundException
      *             The state attribute was not found
-     * @since 1.0
+     * @since 2.0
      */
-    public boolean testForEvent(ITmfEvent event) throws AttributeNotFoundException {
+    public boolean testForEvent(ITmfEvent event, String... args) throws AttributeNotFoundException {
         ITmfStateSystem ss = fContainer.getStateSystem();
-        if (!fStateValues.isEmpty()) {
-            return testForEvent(event, NonNullUtils.checkNotNull(ss));
-        } else if (!fConditions.isEmpty()) {
-            /* Verify a condition tree */
-            switch (fOperator) {
-            case AND:
-                for (TmfXmlCondition childCondition : fConditions) {
-                    if (!childCondition.testForEvent(event)) {
-                        return false;
-                    }
-                }
-                return true;
-            case NONE:
-                break;
-            case NOT:
-                return !fConditions.get(0).testForEvent(event);
-            case OR:
-                for (TmfXmlCondition childCondition : fConditions) {
-                    if (childCondition.testForEvent(event)) {
-                        return true;
-                    }
-                }
-                return false;
-            default:
-                break;
-
+        switch (fType) {
+        case EVENT:
+            if (!fStateValues.isEmpty()) {
+                return testForEvent(event, NonNullUtils.checkNotNull(ss), args);
             }
+            break;
+        case TIME:
+            if (fTimeCondition != null) {
+                return fTimeCondition.testForEvent(event, args);
+            }
+            break;
+        case NONE:
+            if (!fConditions.isEmpty()) {
+                /* Verify a condition tree */
+                switch (fOperator) {
+                case AND:
+                    for (TmfXmlCondition childCondition : fConditions) {
+                        if (!childCondition.testForEvent(event, args)) {
+                            return false;
+                        }
+                    }
+                    return true;
+                case NONE:
+                    break;
+                case NOT:
+                    return !fConditions.get(0).testForEvent(event, args);
+                case OR:
+                    for (TmfXmlCondition childCondition : fConditions) {
+                        if (childCondition.testForEvent(event, args)) {
+                            return true;
+                        }
+                    }
+                    return false;
+                default:
+                    break;
+                }
+            }
+            break;
+        default:
+            throw new IllegalStateException("TmfXmlCondition: the condition should be either a state value or be the result of a condition tree"); //$NON-NLS-1$
         }
         return true;
     }
 
-    private boolean testForEvent(ITmfEvent event, ITmfStateSystem ss) throws AttributeNotFoundException {
+    private boolean testForEvent(ITmfEvent event, ITmfStateSystem ss, String... args) throws AttributeNotFoundException {
         /*
          * The condition is either the equality check of a state value or a
          * boolean operation on other conditions
@@ -253,7 +295,7 @@ public class TmfXmlCondition {
             ITmfXmlStateValue filter = fStateValues.get(0);
             int quark = IXmlStateSystemContainer.ROOT_QUARK;
             for (ITmfXmlStateAttribute attribute : filter.getAttributes()) {
-                quark = attribute.getAttributeQuark(event, quark);
+                quark = attribute.getAttributeQuark(event, quark, args);
                 /*
                  * When verifying a condition, the state attribute must exist,
                  * if it does not, the query is not valid, we stop the condition
@@ -275,12 +317,12 @@ public class TmfXmlCondition {
 
             /* Get the value to compare to from the XML file */
             ITmfStateValue valueXML;
-            valueXML = filter.getValue(event);
+            valueXML = filter.getValue(event, args);
             return compare(valueState, valueXML, fConditionOperator);
         }
         /* Get the two values needed for the comparison */
-        ITmfStateValue valuesXML1 = fStateValues.get(0).getValue(event);
-        ITmfStateValue valuesXML2 = fStateValues.get(1).getValue(event);
+        ITmfStateValue valuesXML1 = fStateValues.get(0).getValue(event, args);
+        ITmfStateValue valuesXML2 = fStateValues.get(1).getValue(event, args);
         return valuesXML1.equals(valuesXML2);
     }
 

@@ -69,12 +69,9 @@ public abstract class TmfXmlStateValue implements ITmfXmlStateValue {
      */
     protected enum ValueTypeStack {
         /** Not stacked */
-        NULL,
-        /** Peek at the value at the top of the stack */
-        PEEK,
-        /** Take the value at the top of the stack */
-        POP,
-        /** Push the value on the stack */
+        NULL, /** Peek at the value at the top of the stack */
+        PEEK, /** Take the value at the top of the stack */
+        POP, /** Push the value on the stack */
         PUSH;
 
         /**
@@ -214,19 +211,11 @@ public abstract class TmfXmlStateValue implements ITmfXmlStateValue {
     }
 
     /**
-     * Get the current {@link ITmfStateValue} of this state value for an event.
-     * It does not increment the value and does not any other processing of the
-     * value.
-     *
-     * @param event
-     *            The current event, or <code>null</code> if no event available.
-     * @return the {@link ITmfStateValue}
-     * @throws AttributeNotFoundException
-     *             May be thrown by the state system during the query
+     * @since 2.0
      */
     @Override
-    public ITmfStateValue getValue(@Nullable ITmfEvent event) throws AttributeNotFoundException {
-        return fStateValue.getValue(event);
+    public ITmfStateValue getValue(@Nullable ITmfEvent event, String... args) throws AttributeNotFoundException {
+        return fStateValue.getValue(event, args);
     }
 
     /**
@@ -269,7 +258,9 @@ public abstract class TmfXmlStateValue implements ITmfXmlStateValue {
                 return TmfStateValue.newValueInt(cpu.intValue());
             }
         }
-        /* Exception also for "TIMESTAMP", returns the timestamp of this event */
+        /*
+         * Exception also for "TIMESTAMP", returns the timestamp of this event
+         */
         if (fieldName.equals(TmfXmlStrings.TIMESTAMP)) {
             return TmfStateValue.newValueLong(event.getTimestamp().getValue());
         }
@@ -280,8 +271,8 @@ public abstract class TmfXmlStateValue implements ITmfXmlStateValue {
         Object field = content.getField(fieldName).getValue();
 
         /*
-         * Try to find the right type. The type can be forced by
-         * "forcedType" argument.
+         * Try to find the right type. The type can be forced by "forcedType"
+         * argument.
          */
 
         if (field instanceof String) {
@@ -403,6 +394,25 @@ public abstract class TmfXmlStateValue implements ITmfXmlStateValue {
         fStateValue.handleEvent(event, quark, ts);
     }
 
+    /**
+     * @since 2.0
+     */
+    @Override
+    public void handleEvent(@NonNull ITmfEvent event, String... arg) throws AttributeNotFoundException, StateValueTypeException, TimeRangeException {
+        int quark = IXmlStateSystemContainer.ROOT_QUARK;
+
+        for (ITmfXmlStateAttribute attribute : fPath) {
+            quark = attribute.getAttributeQuark(event, quark, arg);
+            /* the query is not valid, we stop the state change */
+            if (quark == IXmlStateSystemContainer.ERROR_QUARK) {
+                throw new AttributeNotFoundException("Not found XML attribute " + attribute); //$NON-NLS-1$
+            }
+        }
+
+        long ts = event.getTimestamp().getValue();
+        fStateValue.handleEvent(event, quark, ts);
+    }
+
     @Override
     public String toString() {
         return "TmfXmlStateValue: " + fStateValue; //$NON-NLS-1$
@@ -421,11 +431,15 @@ public abstract class TmfXmlStateValue implements ITmfXmlStateValue {
          *            The event which can be used to retrieve the value if
          *            necessary. The event can be <code>null</code> if no event
          *            is required.
+         * @param args
+         *            The arguments required to get the value of this XML state
+         *            value
          * @return The state value corresponding to this XML state value
          * @throws AttributeNotFoundException
          *             Pass through the exception it received
+         * @since 2.0
          */
-        public abstract ITmfStateValue getValue(@Nullable ITmfEvent event) throws AttributeNotFoundException;
+        public abstract ITmfStateValue getValue(@Nullable ITmfEvent event, String... args) throws AttributeNotFoundException;
 
         /**
          * Do something with the state value, possibly using an event
@@ -498,7 +512,7 @@ public abstract class TmfXmlStateValue implements ITmfXmlStateValue {
     private class TmfXmlStateValueNull extends TmfXmlStateValueBase {
 
         @Override
-        public ITmfStateValue getValue(@Nullable ITmfEvent event) throws AttributeNotFoundException {
+        public ITmfStateValue getValue(@Nullable ITmfEvent event, String... arg) throws AttributeNotFoundException {
             return TmfStateValue.nullValue();
         }
 

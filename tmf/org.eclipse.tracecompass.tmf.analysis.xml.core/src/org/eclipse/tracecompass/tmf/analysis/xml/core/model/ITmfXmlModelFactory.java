@@ -109,4 +109,102 @@ public interface ITmfXmlModelFactory {
      */
     TmfXmlLocation createLocation(Element node, IXmlStateSystemContainer container);
 
+    /**
+     * Create a new XML filter event handler
+     *
+     * @param node
+     *            The XML filter event handler element
+     * @param container
+     *            The state system container this filter event handler belongs to
+     * @return The new XML filter event handler
+     * @since 2.0
+     */
+    TmfXmlFilterEventHandler createFilterEventHandler(Element node, IXmlStateSystemContainer container);
+
+    /**
+     * Create a new XML transition input
+     *
+     * @param node
+     *            The XML transition input
+     * @param container
+     *            The state system container this transition input belongs to
+     * @return The new XML transition input
+     * @since 2.0
+     */
+    TmfXmlTransitionInput createTransitionInput(Element node, IXmlStateSystemContainer container);
+
+    /**
+     * Create a new XML action
+     *
+     * @param node
+     *            The XML action
+     * @param container
+     *            The state system container this action belongs to
+     * @return The new XML action
+     * @since 2.0
+     */
+    TmfXmlAction createAction(Element node, IXmlStateSystemContainer container);
+
+    /**
+     * Create a new XML FSM
+     *
+     * @param node
+     *            The XML FSM
+     * @param container
+     *            The state system container this FSM belongs to
+     * @return The new XML FSM
+     * @since 2.0
+     */
+    TmfXmlFsm createFsm(Element node, IXmlStateSystemContainer container);
+
+    /**
+     * Create a new XML state definition
+     *
+     * @param node
+     *            The XML state definition
+     * @param container
+     *            The state system container this state definition belongs to
+     * @return The new XML FSM
+     * @since 2.0
+     */
+    TmfXmlStateDefinition createStateDefinition(Element node, IXmlStateSystemContainer container);
+
+    /**
+     * Create a new XML state transition
+     *
+     * @param node
+     *            The XML state transition
+     * @param container
+     *            The state system container this state transition belongs to
+     * @return The new XML FSM
+     * @since 2.0
+     */
+    TmfXmlStateTransition createStateTransition(Element node, IXmlStateSystemContainer container);
+
+    /**
+     * Create a new XML timestamps condition
+     *
+     * @param node
+     *            The XML timestamps condition
+     * @param container
+     *            The state system container this timestamps condition belongs to
+     * @return The new XML FSM
+     * @since 2.0
+     */
+    TmfXmlTimestampsCondition createTimestampsCondition(Element node, IXmlStateSystemContainer container);
+
+    /**
+     * Create a new XML synthetic event
+     *
+     * @param node
+     *            The XML synthetic event
+     * @param container
+     *            The state system container this synthetic event belongs to
+     * @return The new XML FSM
+     * @since 2.0
+     */
+    TmfXmlSyntheticEvent createSyntheticEvent(Element node, IXmlStateSystemContainer container);
+
+
+
 }

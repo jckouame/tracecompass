@@ -11,31 +11,19 @@ package org.eclipse.tracecompass.internal.analysis.os.linux.ui.views.latency;
 
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.tracecompass.analysis.os.linux.core.latency.LatencyAnalysis;
+import org.eclipse.tracecompass.analysis.os.linux.core.latency.EventChainLatencyAnalysis;
 import org.eclipse.tracecompass.analysis.timing.core.latency.AbstractLatencyAnalysisModule;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTraceUtils;
 
-/**
- * Density viewer
- *
- * @author Matthew Khouzam
- *
- */
-public class LatencyDensityViewer extends AbstractDensityViewer {
+public class EventChainLatencyDensityViewer extends AbstractDensityViewer {
 
-    /**
-     * Constructs a new density viewer.
-     *
-     * @param parent
-     *            the parent of the viewer
-     */
-    public LatencyDensityViewer(Composite parent) {
+    public EventChainLatencyDensityViewer(Composite parent) {
         super(parent);
     }
 
     @Override
     protected @Nullable AbstractLatencyAnalysisModule getLatencyAnalysisModule(ITmfTrace trace) {
-        return TmfTraceUtils.getAnalysisModuleOfClass(trace, LatencyAnalysis.class, LatencyAnalysis.ID);
+        return TmfTraceUtils.getAnalysisModuleOfClass(trace, EventChainLatencyAnalysis.class, EventChainLatencyAnalysis.ID);
     }
 }

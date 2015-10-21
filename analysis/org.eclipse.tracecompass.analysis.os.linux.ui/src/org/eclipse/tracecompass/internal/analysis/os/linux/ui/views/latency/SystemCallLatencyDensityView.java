@@ -9,8 +9,11 @@
 
 package org.eclipse.tracecompass.internal.analysis.os.linux.ui.views.latency;
 
-import org.eclipse.tracecompass.analysis.os.linux.core.latency.LatencyAnalysis;
-import org.eclipse.tracecompass.analysis.timing.core.latency.AbstractLatencyAnalysisModule;
+import org.eclipse.jface.viewers.TableViewer;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.tracecompass.analysis.timing.ui.views.latency.AbstractLatencyTableViewer;
+import org.eclipse.tracecompass.common.core.NonNullUtils;
 
 /**
  * Latency Density view
@@ -18,24 +21,25 @@ import org.eclipse.tracecompass.analysis.timing.core.latency.AbstractLatencyAnal
  * @author Matthew Khouzam
  *
  */
-public class LatencyDensityView extends AbstractLatencyDensityView {
+public class SystemCallLatencyDensityView extends AbstractLatencyDensityView {
     /** The view's ID */
     public static final String ID = "org.eclipse.tracecompass.analysis.os.linux.views.latency.density"; //$NON-NLS-1$
     /**
      * Constructs a new density view.
      */
-    public LatencyDensityView() {
+    public SystemCallLatencyDensityView() {
         super(ID);
     }
 
     @Override
-    protected Class<? extends AbstractLatencyAnalysisModule> getAnalysisModuleClass() {
-        return LatencyAnalysis.class;
+    protected AbstractLatencyTableViewer createLatencyTableViewer(Composite parent) {
+        TableViewer t = new TableViewer(parent, SWT.FULL_SELECTION | SWT.VIRTUAL);
+        return new LatencyTableViewer(t);
     }
 
     @Override
-    protected String getAnalysisModuleId() {
-        return LatencyAnalysis.ID;
+    protected AbstractDensityViewer createLatencyDensityViewer(Composite parent) {
+        return new LatencyDensityViewer(NonNullUtils.checkNotNull(parent));
     }
 
 }

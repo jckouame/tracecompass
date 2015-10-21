@@ -28,7 +28,7 @@ import org.swtchart.ISeries;
  */
 public class TmfSimpleTooltipProvider implements MouseTrackListener {
 
-    private LatencyDensityViewer fChartViewer;
+    private AbstractDensityViewer fChartViewer;
 
     // ------------------------------------------------------------------------
     // Constructors
@@ -39,7 +39,7 @@ public class TmfSimpleTooltipProvider implements MouseTrackListener {
      * @param tmfChartViewer
      *                  The parent chart viewer
      */
-    public TmfSimpleTooltipProvider(LatencyDensityViewer tmfChartViewer) {
+    public TmfSimpleTooltipProvider(AbstractDensityViewer tmfChartViewer) {
         fChartViewer = tmfChartViewer;
         register();
     }
@@ -70,7 +70,7 @@ public class TmfSimpleTooltipProvider implements MouseTrackListener {
      * Returns the chart viewer reference.
      * @return the chart viewer reference
      */
-    public LatencyDensityViewer getChartViewer() {
+    public AbstractDensityViewer getChartViewer() {
         return fChartViewer;
     }
 

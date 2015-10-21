@@ -9,8 +9,11 @@
 
 package org.eclipse.tracecompass.internal.analysis.os.linux.ui.views.latency;
 
-import org.eclipse.tracecompass.analysis.os.linux.core.latency.EventChainLatencyAnalysis;
-import org.eclipse.tracecompass.analysis.timing.core.latency.AbstractLatencyAnalysisModule;
+import org.eclipse.jface.viewers.TableViewer;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.tracecompass.analysis.timing.ui.views.latency.AbstractLatencyTableViewer;
+import org.eclipse.tracecompass.common.core.NonNullUtils;
 
 /**
  * Latency Density view for event chain latencies
@@ -26,13 +29,13 @@ public class EventChainLatencyDensityView extends AbstractLatencyDensityView {
     }
 
     @Override
-    protected Class<? extends AbstractLatencyAnalysisModule> getAnalysisModuleClass() {
-        return EventChainLatencyAnalysis.class;
+    protected AbstractLatencyTableViewer createLatencyTableViewer(Composite parent) {
+        return new EventChainLatencyTableViewer(new TableViewer(parent, SWT.FULL_SELECTION | SWT.VIRTUAL));
     }
 
     @Override
-    protected String getAnalysisModuleId() {
-        return EventChainLatencyAnalysis.ID;
+    protected AbstractDensityViewer createLatencyDensityViewer(Composite parent) {
+        return new EventChainLatencyDensityViewer(NonNullUtils.checkNotNull(parent));
     }
 
 }

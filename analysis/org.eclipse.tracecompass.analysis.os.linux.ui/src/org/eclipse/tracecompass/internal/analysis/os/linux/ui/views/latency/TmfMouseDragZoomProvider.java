@@ -43,7 +43,7 @@ public class TmfMouseDragZoomProvider implements MouseListener, MouseMoveListene
     /** Flag indicating that an update is ongoing */
     private boolean fIsUpdate;
 
-    private final LatencyDensityViewer fChartViewer;
+    private final AbstractDensityViewer fChartViewer;
 
     // ------------------------------------------------------------------------
     // Constructors
@@ -54,7 +54,7 @@ public class TmfMouseDragZoomProvider implements MouseListener, MouseMoveListene
      * @param tmfChartViewer
      *          the chart viewer reference.
      */
-    public TmfMouseDragZoomProvider(LatencyDensityViewer tmfChartViewer) {
+    public TmfMouseDragZoomProvider(AbstractDensityViewer tmfChartViewer) {
         fChartViewer = tmfChartViewer;
         register();
     }
@@ -72,7 +72,7 @@ public class TmfMouseDragZoomProvider implements MouseListener, MouseMoveListene
      * Returns the chart viewer reference.
      * @return the chart viewer reference
      */
-    public LatencyDensityViewer getChartViewer() {
+    public AbstractDensityViewer getChartViewer() {
         return fChartViewer;
     }
 

@@ -12,7 +12,7 @@ package org.eclipse.tracecompass.internal.analysis.os.linux.ui.views.latency;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.tracecompass.analysis.timing.ui.views.latency.AbstractLatencyTableViewer;
+import org.eclipse.tracecompass.analysis.timing.ui.views.segmentstore.AbstractSegmentStoreTableViewer;
 import org.eclipse.tracecompass.common.core.NonNullUtils;
 
 /**
@@ -32,7 +32,7 @@ public class SystemCallLatencyDensityView extends AbstractLatencyDensityView {
     }
 
     @Override
-    protected AbstractLatencyTableViewer createLatencyTableViewer(Composite parent) {
+    protected AbstractSegmentStoreTableViewer createLatencyTableViewer(Composite parent) {
         TableViewer t = new TableViewer(parent, SWT.FULL_SELECTION | SWT.VIRTUAL);
         return new LatencyTableViewer(t);
     }

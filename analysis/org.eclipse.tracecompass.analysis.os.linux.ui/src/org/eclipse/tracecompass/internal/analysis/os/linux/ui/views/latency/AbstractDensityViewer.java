@@ -22,8 +22,8 @@ import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.tracecompass.analysis.timing.core.latency.AbstractLatencyAnalysisModule;
-import org.eclipse.tracecompass.analysis.timing.core.latency.ILatencyAnalysisListener;
+import org.eclipse.tracecompass.analysis.timing.core.segmentstore.AbstractSegmentStoreAnalysisModule;
+import org.eclipse.tracecompass.analysis.timing.core.segmentstore.IAnalysisProgressListener;
 import org.eclipse.tracecompass.common.core.NonNullUtils;
 import org.eclipse.tracecompass.internal.analysis.os.linux.ui.Activator;
 import org.eclipse.tracecompass.segmentstore.core.ISegment;
@@ -61,9 +61,9 @@ public abstract class AbstractDensityViewer extends TmfViewer {
 
     private Chart fChart;
 
-    private @Nullable ILatencyAnalysisListener fListener;
+    private @Nullable IAnalysisProgressListener fListener;
 
-    private @Nullable AbstractLatencyAnalysisModule fAnalysisModule;
+    private @Nullable AbstractSegmentStoreAnalysisModule fAnalysisModule;
     private TmfTimeRange fCurrentRange = TmfTimeRange.NULL_RANGE;
     private TmfMouseDragZoomProvider fDragZoomProvider;
     private TmfSimpleTooltipProvider fTooltipProvider;
@@ -113,12 +113,12 @@ public abstract class AbstractDensityViewer extends TmfViewer {
     }
 
     /**
-     * Returns the latency analysis module
+     * Returns the segment store analysis module
      * @param trace
      *            The trace to consider
-     * @return the latency analysis module
+     * @return the analysis module
      */
-    protected @Nullable abstract AbstractLatencyAnalysisModule getLatencyAnalysisModule(ITmfTrace trace);
+    protected @Nullable abstract AbstractSegmentStoreAnalysisModule getSegmentStoreAnalysisModule(ITmfTrace trace);
 
     @Nullable
     private static ITmfTrace getTrace() {
@@ -173,7 +173,7 @@ public abstract class AbstractDensityViewer extends TmfViewer {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                AbstractLatencyAnalysisModule analysisModule = fAnalysisModule;
+                AbstractSegmentStoreAnalysisModule analysisModule = fAnalysisModule;
                 if (analysisModule == null) {
                     return;
                 }
@@ -226,13 +226,13 @@ public abstract class AbstractDensityViewer extends TmfViewer {
             Activator.getDefault().logInfo("No Trace to update"); //$NON-NLS-1$
             return;
         }
-        fAnalysisModule = getLatencyAnalysisModule(trace);
+        fAnalysisModule = getSegmentStoreAnalysisModule(trace);
         fCurrentRange = NonNullUtils.checkNotNull(signal.getCurrentRange());
         updateWithRange(fCurrentRange);
     }
 
     private void updateWithRange(final TmfTimeRange range) {
-        final AbstractLatencyAnalysisModule module = fAnalysisModule;
+        final AbstractSegmentStoreAnalysisModule module = fAnalysisModule;
         if (module == null) {
             return;
         }
@@ -329,12 +329,12 @@ public abstract class AbstractDensityViewer extends TmfViewer {
     private void initializeDataSource() {
         ITmfTrace trace = getTrace();
         if (trace != null) {
-            fAnalysisModule = getLatencyAnalysisModule(trace);
-            final AbstractLatencyAnalysisModule module = fAnalysisModule;
+            fAnalysisModule = getSegmentStoreAnalysisModule(trace);
+            final AbstractSegmentStoreAnalysisModule module = fAnalysisModule;
             if (module != null) {
-                fListener = new ILatencyAnalysisListener() {
+                fListener = new IAnalysisProgressListener() {
                     @Override
-                    public void onComplete(AbstractLatencyAnalysisModule activeAnalysis, ISegmentStore<ISegment> data) {
+                    public void onComplete(AbstractSegmentStoreAnalysisModule activeAnalysis, ISegmentStore<ISegment> data) {
                         updateWithRange(fCurrentRange);
                     }
                 };

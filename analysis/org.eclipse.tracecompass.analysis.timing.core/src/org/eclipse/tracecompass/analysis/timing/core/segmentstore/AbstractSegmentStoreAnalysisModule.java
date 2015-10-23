@@ -71,7 +71,7 @@ public abstract class AbstractSegmentStoreAnalysisModule extends TmfAbstractAnal
      * @param listener
      *            listener for each type of viewer
      */
-    public void removeListener(ILatencyAnalysisListener listener) {
+    public void removeListener(IAnalysisProgressListener listener) {
         fListeners.remove(listener);
     }
 

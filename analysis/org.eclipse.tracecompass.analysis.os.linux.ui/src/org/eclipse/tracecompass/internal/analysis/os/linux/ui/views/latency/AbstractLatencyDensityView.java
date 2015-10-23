@@ -19,7 +19,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.TableColumn;
-import org.eclipse.tracecompass.analysis.timing.ui.views.latency.AbstractLatencyTableViewer;
+import org.eclipse.tracecompass.analysis.timing.ui.views.segmentstore.AbstractSegmentStoreTableViewer;
 import org.eclipse.tracecompass.common.core.NonNullUtils;
 import org.eclipse.tracecompass.internal.analysis.os.linux.ui.Activator;
 import org.eclipse.tracecompass.internal.analysis.os.linux.ui.AnalysisImageConstants;
@@ -32,7 +32,7 @@ import org.eclipse.tracecompass.tmf.ui.views.TmfView;
 public abstract class AbstractLatencyDensityView extends TmfView {
 
     private @Nullable AbstractDensityViewer fChartViewer;
-    private @Nullable AbstractLatencyTableViewer fTableViewer;
+    private @Nullable AbstractSegmentStoreTableViewer fTableViewer;
 
     public AbstractLatencyDensityView(String viewName) {
         super(viewName);
@@ -55,7 +55,7 @@ public abstract class AbstractLatencyDensityView extends TmfView {
 
             @Override
             public void contentChanged(List<ISegment> data) {
-                final AbstractLatencyTableViewer viewer = fTableViewer;
+                final AbstractSegmentStoreTableViewer viewer = fTableViewer;
                 if (viewer != null) {
                     viewer.updateModel(data.toArray(new ISegment[] {}));
                 }
@@ -92,7 +92,7 @@ public abstract class AbstractLatencyDensityView extends TmfView {
         }
     }
 
-    abstract protected AbstractLatencyTableViewer createLatencyTableViewer(Composite parent);
+    abstract protected AbstractSegmentStoreTableViewer createLatencyTableViewer(Composite parent);
     abstract protected AbstractDensityViewer createLatencyDensityViewer(Composite parent);
 
     @Override

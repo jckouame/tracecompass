@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Consumer;
+import java.util.concurrent.CompletableFuture;
 
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.swt.SWT;
@@ -58,7 +58,7 @@ public abstract class AbstractDensityViewer extends TmfViewer {
         void selectionChanged(List<ISegment> data);
     }
 
-    private Chart fChart;
+    private final Chart fChart;
 
     private @Nullable IAnalysisProgressListener fListener;
 
@@ -154,29 +154,24 @@ public abstract class AbstractDensityViewer extends TmfViewer {
         return fChart;
     }
 
-    public void zoom(Range durationRange) {
-        updateWithData(fCurrentRange, durationRange, (data) -> applyData(data));
-    }
-
     public void select(Range durationRange) {
-        updateWithData(fCurrentRange, durationRange, (data) -> {
+        computeDataAsync(fCurrentRange, durationRange).thenAccept((data) -> {
             for (ContentChangedListener l : fListeners) {
                 l.selectionChanged(data);
             }
         });
     }
 
-    private void updateWithRange(final TmfTimeRange range) {
-        updateWithData(range, new Range(Double.MIN_VALUE, Double.MAX_VALUE), (data) -> applyData(data));
+    public void zoom(Range durationRange) {
+        computeDataAsync(fCurrentRange, durationRange).thenAccept((data) -> applyData(data));
     }
 
-    private void updateWithData(final TmfTimeRange timeRange, final Range durationRange, Consumer<ArrayList<ISegment>> postAction) {
-        new Thread(() -> {
-            ArrayList<ISegment> data = computeData(timeRange, durationRange);
-            if (data != null) {
-                postAction.accept(data);
-            }
-        }).start();
+    private void updateWithRange(final TmfTimeRange range) {
+        computeDataAsync(range, new Range(Double.MIN_VALUE, Double.MAX_VALUE)).thenAccept((data) -> applyData(data));
+    }
+
+    private CompletableFuture<List<ISegment>> computeDataAsync(final TmfTimeRange range, final Range durationRange) {
+        return CompletableFuture.supplyAsync(() -> computeData(range, durationRange));
     }
 
     private @Nullable ArrayList<ISegment> computeData(final TmfTimeRange range, final Range durationRange) {
@@ -233,8 +228,8 @@ public abstract class AbstractDensityViewer extends TmfViewer {
         }
         fAnalysisModule = getSegmentStoreAnalysisModule(trace);
         final TmfTimeRange currentRange = NonNullUtils.checkNotNull(signal.getCurrentRange());
-        fCurrentRange = currentRange;
         updateWithRange(currentRange);
+        fCurrentRange = currentRange;
     }
 
     @Override
@@ -344,4 +339,7 @@ public abstract class AbstractDensityViewer extends TmfViewer {
         fListeners.add(contentChangedListener);
     }
 
+    public void removeContentChangedListener(ContentChangedListener contentChangedListener) {
+        fListeners.remove(contentChangedListener);
+    }
 }

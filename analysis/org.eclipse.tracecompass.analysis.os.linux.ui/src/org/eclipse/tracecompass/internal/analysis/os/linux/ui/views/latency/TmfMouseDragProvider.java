@@ -1,5 +1,5 @@
 /**********************************************************************
- * Copyright (c) 2013, 2014 Ericsson
+ * Copyright (c) 2014 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -17,6 +17,7 @@ import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.events.MouseMoveListener;
 import org.eclipse.swt.events.PaintEvent;
+import org.eclipse.swt.widgets.Display;
 import org.swtchart.Chart;
 import org.swtchart.IAxis;
 import org.swtchart.ICustomPaintListener;
@@ -27,13 +28,12 @@ import org.swtchart.Range;
 import com.google.common.primitives.Doubles;
 
 /**
- * Class for providing zooming based on mouse drag with right mouse button.
+ * Class for updating time ranges based on middle mouse button drag.
  * It also notifies the viewer about a change of range.
  *
  * @author Bernd Hufmann
  */
-public class TmfMouseDragZoomProvider implements MouseListener, MouseMoveListener, ICustomPaintListener {
-
+public class TmfMouseDragProvider implements MouseListener, MouseMoveListener, ICustomPaintListener {
     // ------------------------------------------------------------------------
     // Attributes
     // ------------------------------------------------------------------------
@@ -55,7 +55,7 @@ public class TmfMouseDragZoomProvider implements MouseListener, MouseMoveListene
      * @param tmfChartViewer
      *          the chart viewer reference.
      */
-    public TmfMouseDragZoomProvider(AbstractDensityViewer tmfChartViewer) {
+    public TmfMouseDragProvider(AbstractDensityViewer tmfChartViewer) {
         fChartViewer = tmfChartViewer;
         register();
     }
@@ -103,7 +103,7 @@ public class TmfMouseDragZoomProvider implements MouseListener, MouseMoveListene
 
     @Override
     public void mouseDown(@Nullable MouseEvent e) {
-        if (e != null && e.button == 3) {
+        if (e != null && e.button == 1) {
             IAxis xAxis = getChart().getAxisSet().getXAxis(0);
             fStartTime = limitXDataCoordinate(xAxis.getDataCoordinate(e.x));
             fEndTime = fStartTime;
@@ -113,18 +113,17 @@ public class TmfMouseDragZoomProvider implements MouseListener, MouseMoveListene
 
     @Override
     public void mouseUp(@Nullable MouseEvent e) {
-        if ((fIsUpdate) && (fStartTime != fEndTime)) {
+        if ((fIsUpdate)) {
             if (fStartTime > fEndTime) {
                 double tmp = fStartTime;
                 fStartTime = fEndTime;
                 fEndTime = tmp;
             }
-            //double max = getChart().getAxisSet().getXAxis(0).getDataCoordinate(fStartTime);
-            //fMin = getControl().getAxisSet().getXAxis(0).getDataCoordinate(e.x);
-            getChartViewer().zoom(new Range(fStartTime, fEndTime));
-
-//            LatencyDensityViewer viewer = getChartViewer();
-//            viewer.updateWindow(fStartTime + viewer.getTimeOffset(), fEndTime + viewer.getTimeOffset());
+            if (!isEmptySelection()) {
+                getChartViewer().select(new Range(Double.MIN_VALUE, Double.MAX_VALUE));
+            } else {
+                getChartViewer().select(new Range(fStartTime, fEndTime));
+            }
         }
 
         if (fIsUpdate) {
@@ -168,24 +167,46 @@ public class TmfMouseDragZoomProvider implements MouseListener, MouseMoveListene
         return x;
     }
 
+    private boolean isEmptySelection() {
+        IAxis xAxis = getChart().getAxisSet().getXAxis(0);
+        int begin = xAxis.getPixelCoordinate(fStartTime);
+        int end = xAxis.getPixelCoordinate(fEndTime);
+
+        return Math.abs(end - begin) > 2;
+    }
+
     // ------------------------------------------------------------------------
     // ICustomPaintListener
     // ------------------------------------------------------------------------
     @Override
     public void paintControl(@Nullable PaintEvent e) {
-        if (e != null && fIsUpdate && (fStartTime != fEndTime)) {
-            IAxis xAxis = getChart().getAxisSet().getXAxis(0);
-            int startX = xAxis.getPixelCoordinate(fStartTime);
-            int endX = xAxis.getPixelCoordinate(fEndTime);
+        if (e == null || !isEmptySelection()) {
+            return;
+        }
 
-            e.gc.setBackground(getChart().getDisplay().getSystemColor(SWT.COLOR_TITLE_INACTIVE_BACKGROUND));
-            if (fStartTime < fEndTime) {
-                e.gc.fillRectangle(startX, 0, endX - startX, e.height);
+        AbstractDensityViewer viewer = getChartViewer();
+        Display display = viewer.getControl().getDisplay();
+
+        IAxis xAxis = getChart().getAxisSet().getXAxis(0);
+        e.gc.setBackground(display.getSystemColor(SWT.COLOR_BLUE));
+        e.gc.setForeground(display.getSystemColor(SWT.COLOR_BLUE));
+        e.gc.setLineStyle(SWT.LINE_SOLID);
+        int begin = xAxis.getPixelCoordinate(fStartTime);
+        e.gc.drawLine(begin, 0, begin, e.height);
+
+        int end = xAxis.getPixelCoordinate(fEndTime);
+        e.gc.drawLine(end, 0, end, e.height);
+
+        e.gc.setAlpha(150);
+        if (Math.abs(fEndTime - fStartTime) > 1) {
+            e.gc.setBackground(display.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
+            int beginX = xAxis.getPixelCoordinate(fStartTime);
+            int endX = xAxis.getPixelCoordinate(fEndTime);
+            if (fEndTime > fStartTime) {
+                e.gc.fillRectangle(beginX + 1, 0, endX - beginX - 1, e.height);
             } else {
-                e.gc.fillRectangle(endX, 0, startX - endX, e.height);
+                e.gc.fillRectangle(endX + 1, 0, beginX - endX - 1, e.height);
             }
-            e.gc.drawLine(startX, 0, startX, e.height);
-            e.gc.drawLine(endX, 0, endX, e.height);
         }
     }
 

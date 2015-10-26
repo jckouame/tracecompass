@@ -28,6 +28,7 @@ import org.eclipse.tracecompass.segmentstore.core.ISegment;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTraceManager;
 import org.eclipse.tracecompass.tmf.ui.views.TmfView;
+import org.swtchart.Range;
 
 public abstract class AbstractLatencyDensityView extends TmfView {
 
@@ -55,10 +56,19 @@ public abstract class AbstractLatencyDensityView extends TmfView {
 
             @Override
             public void contentChanged(List<ISegment> data) {
+                updateTableModel(data);
+            }
+
+            private void updateTableModel(List<ISegment> data) {
                 final AbstractSegmentStoreTableViewer viewer = fTableViewer;
                 if (viewer != null) {
                     viewer.updateModel(data.toArray(new ISegment[] {}));
                 }
+            }
+
+            @Override
+            public void selectionChanged(List<ISegment> data) {
+                updateTableModel(data);
             }
 
         });
@@ -70,7 +80,7 @@ public abstract class AbstractLatencyDensityView extends TmfView {
             public void run() {
                 final AbstractDensityViewer chart = fChartViewer;
                 if (chart != null) {
-                    chart.zoom(0, Long.MAX_VALUE);
+                    chart.zoom(new Range(0, Long.MAX_VALUE));
                 }
             }
 

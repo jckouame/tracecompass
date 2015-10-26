@@ -15,17 +15,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Consumer;
 
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.MouseAdapter;
-import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.tracecompass.analysis.timing.core.segmentstore.AbstractSegmentStoreAnalysisModule;
 import org.eclipse.tracecompass.analysis.timing.core.segmentstore.IAnalysisProgressListener;
 import org.eclipse.tracecompass.common.core.NonNullUtils;
-import org.eclipse.tracecompass.internal.analysis.os.linux.ui.Activator;
 import org.eclipse.tracecompass.segmentstore.core.ISegment;
 import org.eclipse.tracecompass.segmentstore.core.ISegmentStore;
 import org.eclipse.tracecompass.segmentstore.core.SegmentComparators;
@@ -57,6 +55,7 @@ public abstract class AbstractDensityViewer extends TmfViewer {
 
     interface ContentChangedListener {
         void contentChanged(List<ISegment> data);
+        void selectionChanged(List<ISegment> data);
     }
 
     private Chart fChart;
@@ -66,6 +65,7 @@ public abstract class AbstractDensityViewer extends TmfViewer {
     private @Nullable AbstractSegmentStoreAnalysisModule fAnalysisModule;
     private TmfTimeRange fCurrentRange = TmfTimeRange.NULL_RANGE;
     private TmfMouseDragZoomProvider fDragZoomProvider;
+    private TmfMouseDragProvider fDragProvider;
     private TmfSimpleTooltipProvider fTooltipProvider;
 
     private @Nullable ITmfTrace fTrace;
@@ -76,12 +76,6 @@ public abstract class AbstractDensityViewer extends TmfViewer {
      *
      * @param parent
      *            the parent of the viewer
-     * @param title
-     *            the title to use for the chart
-     * @param xLabel
-     *            the label to use for the X-axis
-     * @param yLabel
-     *            the label to use for the Y-axis
      */
     public AbstractDensityViewer(Composite parent) {
         super(parent);
@@ -96,20 +90,11 @@ public abstract class AbstractDensityViewer extends TmfViewer {
 
         fDragZoomProvider = new TmfMouseDragZoomProvider(this);
         fDragZoomProvider.register();
+
+        fDragProvider = new TmfMouseDragProvider(this);
+        fDragProvider.register();
         fTooltipProvider = new TmfSimpleTooltipProvider(this);
         fTooltipProvider.register();
-        fChart.getPlotArea().addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseUp(@Nullable MouseEvent e) {
-                super.mouseUp(e);
-                if (e != null) {
-                    IAxis xAxis = fChart.getAxisSet().getXAxis(0);
-                    double endTime = xAxis.getDataCoordinate(e.x);
-                    System.out.println("selected: " + endTime);
-                }
-            }
-        });
-
     }
 
     /**
@@ -169,41 +154,62 @@ public abstract class AbstractDensityViewer extends TmfViewer {
         return fChart;
     }
 
-    public void zoom(final double min, final double max) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                AbstractSegmentStoreAnalysisModule analysisModule = fAnalysisModule;
-                if (analysisModule == null) {
-                    return;
-                }
-                ISegmentStore<ISegment> results = analysisModule.getResults();
-                if (results == null) {
-                    return;
-                }
-                Iterable<ISegment> intersectingElements = results.getIntersectingElements(fCurrentRange.getStartTime().getValue(), fCurrentRange.getEndTime().getValue());
-                Predicate<? super ISegment> predicate = new Predicate<ISegment>() {
-                    @Override
-                    public boolean apply(@Nullable ISegment input) {
+    public void zoom(Range durationRange) {
+        updateWithData(fCurrentRange, durationRange, (data) -> applyData(data));
+    }
 
-                        return input != null && input.getLength() >= min && input.getLength() <= max;
-                    }
+    public void select(Range durationRange) {
+        updateWithData(fCurrentRange, durationRange, (data) -> {
+            for (ContentChangedListener l : fListeners) {
+                l.selectionChanged(data);
+            }
+        });
+    }
 
-                };
-                final UnmodifiableIterator<ISegment> intersection = Iterators.<ISegment> filter(intersectingElements.iterator(), predicate);
-                updateData(Lists.newArrayList(intersection));
+    private void updateWithRange(final TmfTimeRange range) {
+        updateWithData(range, new Range(Double.MIN_VALUE, Double.MAX_VALUE), (data) -> applyData(data));
+    }
 
+    private void updateWithData(final TmfTimeRange timeRange, final Range durationRange, Consumer<ArrayList<ISegment>> postAction) {
+        new Thread(() -> {
+            ArrayList<ISegment> data = computeData(timeRange, durationRange);
+            if (data != null) {
+                postAction.accept(data);
             }
         }).start();
     }
 
-    private void updateData(final List<ISegment> data) {
+    private @Nullable ArrayList<ISegment> computeData(final TmfTimeRange range, final Range durationRange) {
+        AbstractSegmentStoreAnalysisModule analysisModule = fAnalysisModule;
+        if (analysisModule == null) {
+            return null;
+        }
+        ISegmentStore<ISegment> results = analysisModule.getResults();
+        if (results == null) {
+            return null;
+        }
+
+        Iterable<ISegment> intersectingElements = results.getIntersectingElements(range.getStartTime().getValue(), range.getEndTime().getValue());
+
+        if (durationRange.lower > Double.MIN_VALUE || durationRange.upper < Double.MAX_VALUE) {
+            Predicate<? super ISegment> predicate = new Predicate<ISegment>() {
+                @Override
+                public boolean apply(@Nullable ISegment input) {
+
+                    return input != null && input.getLength() >= durationRange.lower && input.getLength() <= durationRange.upper;
+                }
+            };
+            final UnmodifiableIterator<ISegment> intersection = Iterators.<ISegment> filter(intersectingElements.iterator(), predicate);
+            return Lists.newArrayList(intersection);
+        }
+
+        return Lists.newArrayList(intersectingElements);
+    }
+
+    private void applyData(final List<ISegment> data) {
         Collections.sort(data, SegmentComparators.INTERVAL_LENGTH_COMPARATOR);
-        Display.getDefault().asyncExec(new Runnable() {
-            @Override
-            public void run() {
-                updateDisplay(NonNullUtils.checkNotNull(data));
-            }
+        Display.getDefault().asyncExec(() -> {
+            updateDisplay(NonNullUtils.checkNotNull(data));
         });
         for (ContentChangedListener l : fListeners) {
             l.contentChanged(data);
@@ -223,32 +229,12 @@ public abstract class AbstractDensityViewer extends TmfViewer {
         }
         ITmfTrace trace = getTrace();
         if (trace == null) {
-            Activator.getDefault().logInfo("No Trace to update"); //$NON-NLS-1$
             return;
         }
         fAnalysisModule = getSegmentStoreAnalysisModule(trace);
-        fCurrentRange = NonNullUtils.checkNotNull(signal.getCurrentRange());
-        updateWithRange(fCurrentRange);
-    }
-
-    private void updateWithRange(final TmfTimeRange range) {
-        final AbstractSegmentStoreAnalysisModule module = fAnalysisModule;
-        if (module == null) {
-            return;
-        }
-
-        new Thread(new Runnable() {
-
-            @Override
-            public void run() {
-                ISegmentStore<ISegment> results = module.getResults();
-                if (results != null) {
-                    final Iterable<ISegment> intersection = results.getIntersectingElements(range.getStartTime().getValue(), range.getEndTime().getValue());
-                    updateData(Lists.newArrayList(intersection));
-                }
-
-            }
-        }).start();
+        final TmfTimeRange currentRange = NonNullUtils.checkNotNull(signal.getCurrentRange());
+        fCurrentRange = currentRange;
+        updateWithRange(currentRange);
     }
 
     @Override
@@ -263,6 +249,7 @@ public abstract class AbstractDensityViewer extends TmfViewer {
         }
         fDragZoomProvider.deregister();
         fTooltipProvider.deregister();
+        fDragProvider.deregister();
         super.dispose();
     }
 
@@ -305,7 +292,6 @@ public abstract class AbstractDensityViewer extends TmfViewer {
             return;
         }
 
-        // Reset the internal data
         fTrace = null;
         clearContent();
     }
@@ -317,35 +303,23 @@ public abstract class AbstractDensityViewer extends TmfViewer {
      *            A trace to apply in the viewer
      */
     protected void loadTrace(@Nullable ITmfTrace trace) {
+        clearContent();
+
         fTrace = trace;
         TmfTraceContext ctx = TmfTraceManager.getInstance().getCurrentTraceContext();
-        fCurrentRange = ctx.getWindowRange();
+        TmfTimeRange windowRange = ctx.getWindowRange();
+        fCurrentRange = windowRange;
 
-        clearContent();
-        initializeDataSource();
-        updateContent();
-    }
-
-    private void initializeDataSource() {
-        ITmfTrace trace = getTrace();
         if (trace != null) {
             fAnalysisModule = getSegmentStoreAnalysisModule(trace);
             final AbstractSegmentStoreAnalysisModule module = fAnalysisModule;
             if (module != null) {
-                fListener = new IAnalysisProgressListener() {
-                    @Override
-                    public void onComplete(AbstractSegmentStoreAnalysisModule activeAnalysis, ISegmentStore<ISegment> data) {
-                        updateWithRange(fCurrentRange);
-                    }
-                };
+                fListener = (activeAnalysis, data) -> updateWithRange(windowRange);
                 module.addListener(fListener);
                 module.schedule();
             }
         }
-    }
-
-    private void updateContent() {
-        zoom(0, Long.MAX_VALUE);
+        zoom(new Range(0, Long.MAX_VALUE));
     }
 
     /**
@@ -359,8 +333,8 @@ public abstract class AbstractDensityViewer extends TmfViewer {
             for (int i = 0; i < series.length; i++) {
                 set.deleteSeries(series[i].getId());
             }
-            for (IAxis axis: chart.getAxisSet().getAxes()){
-                axis.setRange(new Range(0,1));
+            for (IAxis axis : chart.getAxisSet().getAxes()) {
+                axis.setRange(new Range(0, 1));
             }
             chart.redraw();
         }

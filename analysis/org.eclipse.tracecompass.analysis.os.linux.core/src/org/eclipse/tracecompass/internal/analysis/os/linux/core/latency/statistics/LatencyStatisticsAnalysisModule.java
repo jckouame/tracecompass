@@ -52,8 +52,10 @@ public class LatencyStatisticsAnalysisModule extends TmfAbstractAnalysisModule {
         ITmfTrace trace = getTrace();
         if (trace != null) {
             LatencyAnalysis module = TmfTraceUtils.getAnalysisModuleOfClass(trace, LatencyAnalysis.class, checkNotNull(LatencyAnalysis.ID));
-            fLatencyModule = module;
-            return checkNotNull(ImmutableList.of((IAnalysisModule) module));
+            if (module != null) {
+                fLatencyModule = module;
+                return checkNotNull(ImmutableList.of((IAnalysisModule) module));
+            }
         }
         return super.getDependentAnalyses();
     }

@@ -19,6 +19,7 @@ import org.eclipse.tracecompass.common.core.NonNullUtils;
  * Latency Density view
  *
  * @author Matthew Khouzam
+ * @author Marc-Andre Laperle
  *
  */
 public class SystemCallLatencyDensityView extends AbstractLatencyDensityView {

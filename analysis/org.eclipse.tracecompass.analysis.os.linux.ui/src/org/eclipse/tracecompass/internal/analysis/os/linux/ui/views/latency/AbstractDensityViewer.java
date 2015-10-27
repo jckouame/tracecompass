@@ -64,9 +64,9 @@ public abstract class AbstractDensityViewer extends TmfViewer {
 
     private @Nullable AbstractSegmentStoreAnalysisModule fAnalysisModule;
     private TmfTimeRange fCurrentRange = TmfTimeRange.NULL_RANGE;
-    private TmfMouseDragZoomProvider fDragZoomProvider;
-    private TmfMouseDragProvider fDragProvider;
-    private TmfSimpleTooltipProvider fTooltipProvider;
+    private MouseDragZoomProvider fDragZoomProvider;
+    private MouseSelectionProvider fDragProvider;
+    private SimpleTooltipProvider fTooltipProvider;
 
     private @Nullable ITmfTrace fTrace;
     private List<ContentChangedListener> fListeners;
@@ -88,12 +88,12 @@ public abstract class AbstractDensityViewer extends TmfViewer {
         fChart.getAxisSet().getXAxis(0).getGrid().setStyle(LineStyle.NONE);
         fChart.getAxisSet().getYAxis(0).getGrid().setStyle(LineStyle.NONE);
 
-        fDragZoomProvider = new TmfMouseDragZoomProvider(this);
+        fDragZoomProvider = new MouseDragZoomProvider(this);
         fDragZoomProvider.register();
 
-        fDragProvider = new TmfMouseDragProvider(this);
+        fDragProvider = new MouseSelectionProvider(this);
         fDragProvider.register();
-        fTooltipProvider = new TmfSimpleTooltipProvider(this);
+        fTooltipProvider = new SimpleTooltipProvider(this);
         fTooltipProvider.register();
     }
 

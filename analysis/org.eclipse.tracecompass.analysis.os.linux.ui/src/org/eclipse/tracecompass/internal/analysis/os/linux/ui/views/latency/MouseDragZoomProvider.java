@@ -1,14 +1,12 @@
 /**********************************************************************
- * Copyright (c) 2013, 2014 Ericsson
+ * Copyright (c) 2015 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
  * accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Contributors:
- *   Bernd Hufmann - Initial API and implementation
  **********************************************************************/
+
 package org.eclipse.tracecompass.internal.analysis.os.linux.ui.views.latency;
 
 import org.eclipse.jdt.annotation.Nullable;
@@ -17,26 +15,20 @@ import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.events.MouseMoveListener;
 import org.eclipse.swt.events.PaintEvent;
-import org.swtchart.Chart;
 import org.swtchart.IAxis;
 import org.swtchart.ICustomPaintListener;
 import org.swtchart.IPlotArea;
-import org.swtchart.ISeries;
 import org.swtchart.Range;
-
-import com.google.common.primitives.Doubles;
 
 /**
  * Class for providing zooming based on mouse drag with right mouse button.
  * It also notifies the viewer about a change of range.
  *
  * @author Bernd Hufmann
+ * @author Marc-Andre Laperle
  */
-public class TmfMouseDragZoomProvider implements MouseListener, MouseMoveListener, ICustomPaintListener {
+public class MouseDragZoomProvider extends BaseMouseProvider implements MouseListener, MouseMoveListener, ICustomPaintListener {
 
-    // ------------------------------------------------------------------------
-    // Attributes
-    // ------------------------------------------------------------------------
     /** Cached start time */
     private double fStartTime;
     /** Cached end time */
@@ -44,59 +36,33 @@ public class TmfMouseDragZoomProvider implements MouseListener, MouseMoveListene
     /** Flag indicating that an update is ongoing */
     private boolean fIsUpdate;
 
-    private final AbstractDensityViewer fChartViewer;
-
-    // ------------------------------------------------------------------------
-    // Constructors
-    // ------------------------------------------------------------------------
     /**
      * Default constructor
      *
-     * @param tmfChartViewer
-     *          the chart viewer reference.
+     * @param densityViewer
+     *            the density viewer reference.
      */
-    public TmfMouseDragZoomProvider(AbstractDensityViewer tmfChartViewer) {
-        fChartViewer = tmfChartViewer;
+    public MouseDragZoomProvider(AbstractDensityViewer densityViewer) {
+        super(densityViewer);
         register();
     }
 
-    /**
-     * Returns the SWT chart reference
-     *
-     * @return SWT chart reference.
-     */
-    protected Chart getChart() {
-        return fChartViewer.getControl();
-    }
-
-    /**
-     * Returns the chart viewer reference.
-     * @return the chart viewer reference
-     */
-    public AbstractDensityViewer getChartViewer() {
-        return fChartViewer;
-    }
-
-    // ------------------------------------------------------------------------
-    // TmfBaseProvider
-    // ------------------------------------------------------------------------
+    @Override
     public void register() {
         getChart().getPlotArea().addMouseListener(this);
         getChart().getPlotArea().addMouseMoveListener(this);
         ((IPlotArea) getChart().getPlotArea()).addCustomPaintListener(this);
     }
 
+    @Override
     public void deregister() {
-        if (!getChartViewer().getControl().isDisposed()) {
+        if (!getChart().isDisposed()) {
             getChart().getPlotArea().removeMouseListener(this);
             getChart().getPlotArea().removeMouseMoveListener(this);
             ((IPlotArea) getChart().getPlotArea()).removeCustomPaintListener(this);
         }
     }
 
-    // ------------------------------------------------------------------------
-    // MouseListener
-    // ------------------------------------------------------------------------
     @Override
     public void mouseDoubleClick(@Nullable MouseEvent e) {
     }
@@ -119,12 +85,7 @@ public class TmfMouseDragZoomProvider implements MouseListener, MouseMoveListene
                 fStartTime = fEndTime;
                 fEndTime = tmp;
             }
-            //double max = getChart().getAxisSet().getXAxis(0).getDataCoordinate(fStartTime);
-            //fMin = getControl().getAxisSet().getXAxis(0).getDataCoordinate(e.x);
-            getChartViewer().zoom(new Range(fStartTime, fEndTime));
-
-//            LatencyDensityViewer viewer = getChartViewer();
-//            viewer.updateWindow(fStartTime + viewer.getTimeOffset(), fEndTime + viewer.getTimeOffset());
+            getDensityViewer().zoom(new Range(fStartTime, fEndTime));
         }
 
         if (fIsUpdate) {
@@ -142,35 +103,6 @@ public class TmfMouseDragZoomProvider implements MouseListener, MouseMoveListene
         }
     }
 
-    /**
-     * Limits x data coordinate to window start and window end range
-     *
-     * @param x
-     *          x to limit
-     * @return  x if x >= begin && x <= end
-     *          begin if x < begin
-     *          end if x > end
-     */
-    protected double limitXDataCoordinate(double x) {
-        Chart chart = getChartViewer().getControl();
-        IAxis[] xAxes = chart.getAxisSet().getXAxes();
-        ISeries[] series = chart.getSeriesSet().getSeries();
-        if ((xAxes.length > 0) && (series.length > 0) &&
-                (series[0].getXSeries() != null) && (series[0].getXSeries().length > 0)) {
-            // All series have the same X series
-            double[] xSeries = series[0].getXSeries();
-            double maxX = Doubles.max(xSeries);
-            double minX = Doubles.min(xSeries);
-
-            return Math.max(minX, Math.min(maxX, x));
-        }
-
-        return x;
-    }
-
-    // ------------------------------------------------------------------------
-    // ICustomPaintListener
-    // ------------------------------------------------------------------------
     @Override
     public void paintControl(@Nullable PaintEvent e) {
         if (e != null && fIsUpdate && (fStartTime != fEndTime)) {

@@ -14,29 +14,49 @@ import java.util.List;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IToolBarManager;
-import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.tracecompass.analysis.timing.ui.views.segmentstore.AbstractSegmentStoreTableViewer;
-import org.eclipse.tracecompass.common.core.NonNullUtils;
-import org.eclipse.tracecompass.internal.analysis.os.linux.ui.Activator;
-import org.eclipse.tracecompass.internal.analysis.os.linux.ui.AnalysisImageConstants;
 import org.eclipse.tracecompass.internal.analysis.os.linux.ui.views.latency.AbstractDensityViewer.ContentChangedListener;
 import org.eclipse.tracecompass.segmentstore.core.ISegment;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTraceManager;
 import org.eclipse.tracecompass.tmf.ui.views.TmfView;
-import org.swtchart.Range;
 
+/**
+ * Displays the segment store analysis data in a scatter graph
+ *
+ * @author Matthew Khouzam
+ * @author Marc-Andre Laperle
+ */
 public abstract class AbstractLatencyDensityView extends TmfView {
 
-    private @Nullable AbstractDensityViewer fChartViewer;
+    @Nullable AbstractDensityViewer fChartViewer;
     private @Nullable AbstractSegmentStoreTableViewer fTableViewer;
 
     public AbstractLatencyDensityView(String viewName) {
         super(viewName);
+    }
+
+    private final class ContentChangedListenerImplementation implements ContentChangedListener {
+        @Override
+        public void contentChanged(List<ISegment> data) {
+            updateTableModel(data);
+        }
+    
+        private void updateTableModel(List<ISegment> data) {
+            final AbstractSegmentStoreTableViewer viewer = fTableViewer;
+            if (viewer != null) {
+                viewer.updateModel(data.toArray(new ISegment[] {}));
+            }
+        }
+    
+        @Override
+        public void selectionChanged(List<ISegment> data) {
+            updateTableModel(data);
+        }
     }
 
     @Override
@@ -52,48 +72,11 @@ public abstract class AbstractLatencyDensityView extends TmfView {
 
         fChartViewer = createLatencyDensityViewer(sashForm);
 
-        fChartViewer.addContentChangedListener(new ContentChangedListener(){
-
-            @Override
-            public void contentChanged(List<ISegment> data) {
-                updateTableModel(data);
-            }
-
-            private void updateTableModel(List<ISegment> data) {
-                final AbstractSegmentStoreTableViewer viewer = fTableViewer;
-                if (viewer != null) {
-                    viewer.updateModel(data.toArray(new ISegment[] {}));
-                }
-            }
-
-            @Override
-            public void selectionChanged(List<ISegment> data) {
-                updateTableModel(data);
-            }
-
-        });
+        fChartViewer.addContentChangedListener(new ContentChangedListenerImplementation());
 
         sashForm.setWeights(new int[] {4, 6});
 
-        Action zoomOut = new Action() {
-            @Override
-            public void run() {
-                final AbstractDensityViewer chart = fChartViewer;
-                if (chart != null) {
-                    chart.zoom(new Range(0, Long.MAX_VALUE));
-                }
-            }
-
-            @Override
-            public ImageDescriptor getImageDescriptor() {
-                return NonNullUtils.checkNotNull(Activator.getDefault().getImageDescripterFromPath(AnalysisImageConstants.IMG_UI_ZOOM_OUT_MENU));
-            }
-
-            @Override
-            public String getToolTipText() {
-                return NonNullUtils.checkNotNull(Messages.LatencyDensityView_ZoomOutActionToolTipText);
-            }
-        };
+        Action zoomOut = new ZoomOutAction(this);
         IToolBarManager toolBar = getViewSite().getActionBars().getToolBarManager();
         toolBar.add(zoomOut);
         ITmfTrace trace = TmfTraceManager.getInstance().getActiveTrace();

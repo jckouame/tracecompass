@@ -9,7 +9,7 @@
  * Contributors:
  *   Jean-christian Kouame - Initial API and implementation
  *******************************************************************************/
-package org.eclipse.tracecompass.analysis.os.linux.ui.xmlIrqLatency;
+package org.eclipse.tracecompass.analysis.os.linux.ui.views.xmlIrqLatency;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -21,11 +21,11 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.tracecompass.analysis.os.linux.ui.viewers.AbstractTmfLatencySegmentAnalysisViewer;
+import org.eclipse.tracecompass.analysis.os.linux.core.latency.irq.IRQ;
+import org.eclipse.tracecompass.analysis.os.linux.core.latency.irq.XmlIrqUtils;
+import org.eclipse.tracecompass.analysis.os.linux.core.latency.irq.XmlIrqUtils.TYPE;
+import org.eclipse.tracecompass.analysis.os.linux.ui.viewers.AbstractTmfLatencySegmentTreeViewer;
 import org.eclipse.tracecompass.common.core.NonNullUtils;
-import org.eclipse.tracecompass.internal.analysis.os.linux.ui.views.model.IRQ;
-import org.eclipse.tracecompass.internal.analysis.os.linux.ui.views.resources.XmlIrqUtils;
-import org.eclipse.tracecompass.internal.analysis.os.linux.ui.views.resources.XmlIrqUtils.TYPE;
 import org.eclipse.tracecompass.statesystem.core.ITmfStateSystem;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.model.TmfXmlSyntheticEvent;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.stateprovider.XmlPatternStateSystemModule;
@@ -37,7 +37,7 @@ import org.eclipse.tracecompass.tmf.core.trace.TmfTraceUtils;
 /**
  * This class displays the irq latency analysis in a tree column table
  */
-public class XMLIrqLatencyViewer extends AbstractTmfLatencySegmentAnalysisViewer {
+public class XMLIrqLatencyViewer extends AbstractTmfLatencySegmentTreeViewer {
 
     /**
      * Constructor

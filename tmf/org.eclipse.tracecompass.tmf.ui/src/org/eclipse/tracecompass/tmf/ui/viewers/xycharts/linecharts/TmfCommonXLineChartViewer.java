@@ -53,12 +53,20 @@ public abstract class TmfCommonXLineChartViewer extends TmfXYChartViewer {
     /* The desired number of points per pixel */
     private static final double RESOLUTION = 1.0;
 
-    private static final int[] LINE_COLORS = { SWT.COLOR_BLUE, SWT.COLOR_RED, SWT.COLOR_GREEN,
+    /**
+     * @since 2.0
+     *
+     */
+    protected static final int[] LINE_COLORS = { SWT.COLOR_BLUE, SWT.COLOR_RED, SWT.COLOR_GREEN,
             SWT.COLOR_MAGENTA, SWT.COLOR_CYAN,
             SWT.COLOR_DARK_BLUE, SWT.COLOR_DARK_RED, SWT.COLOR_DARK_GREEN,
             SWT.COLOR_DARK_MAGENTA, SWT.COLOR_DARK_CYAN, SWT.COLOR_DARK_YELLOW,
             SWT.COLOR_BLACK, SWT.COLOR_GRAY };
-    private static final LineStyle[] LINE_STYLES = { LineStyle.SOLID, LineStyle.DASH, LineStyle.DOT, LineStyle.DASHDOT };
+    /**
+     * @since 2.0
+     *
+     */
+    protected static final LineStyle[] LINE_STYLES = { LineStyle.SOLID, LineStyle.DASH, LineStyle.DOT, LineStyle.DASHDOT };
 
     private final Map<String, double[]> fSeriesValues = new LinkedHashMap<>();
     private double[] fXValues;

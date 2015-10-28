@@ -9,7 +9,7 @@
  * Contributors:
  *   Jean-christian Kouame - Initial API and implementation
  *******************************************************************************/
-package org.eclipse.tracecompass.analysis.os.linux.ui.xmlIrqAverageLatency;
+package org.eclipse.tracecompass.analysis.os.linux.ui.views.xmlIrqLatency;
 
 import org.eclipse.osgi.util.NLS;
 
@@ -21,17 +21,15 @@ import org.eclipse.osgi.util.NLS;
  */
 @SuppressWarnings("javadoc")
 public class Messages extends NLS {
-    private static final String BUNDLE_NAME = "org.eclipse.tracecompass.analysis.os.linux.ui.xmlIrqAverageLatency.messages"; //$NON-NLS-1$
-    public static String XMLIrqAverageLatencyViewer_Average;
-    public static String XMLIrqAverageLatencyViewer_Count;
-    public static String XMLIrqAverageLatencyViewer_GoToMaxIRQ;
-    public static String XMLIrqAverageLatencyViewer_GoToMinIRQ;
-    public static String XMLIrqAverageLatencyViewer_Interrupt;
-    public static String XMLIrqAverageLatencyViewer_IRQ;
-    public static String XMLIrqAverageLatencyViewer_Max;
-    public static String XMLIrqAverageLatencyViewer_Min;
-    public static String XMLIrqAverageLatencyViewer_Reset;
-    public static String XMLIrqAverageLatencyViewer_SOFTIRQ;
+    private static final String BUNDLE_NAME = "org.eclipse.tracecompass.analysis.os.linux.ui.views.xmlIrqLatency.messages"; //$NON-NLS-1$
+    public static String XMLIrqLatencyViewer_ElapsedTime;
+    public static String XMLIrqLatencyViewer_EndTime;
+    public static String XMLIrqLatencyViewer_Interrupt;
+    public static String XMLIrqLatencyViewer_NonApplicable;
+    public static String XMLIrqLatencyViewer_Reset;
+    public static String XMLIrqLatencyViewer_StartTime;
+    public static String XMLIrqLatencyViewer_TimeToEentry;
+    public static String XMLIrqLatencyViewer_TimeToExit;
 
     static {
         // initialize resource bundle

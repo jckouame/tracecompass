@@ -1,4 +1,4 @@
-package org.eclipse.tracecompass.internal.analysis.os.linux.ui.views.resources;
+package org.eclipse.tracecompass.analysis.os.linux.core.latency.irq;
 
 import org.eclipse.tracecompass.common.core.NonNullUtils;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.model.TmfXmlSyntheticEvent;
@@ -8,22 +8,64 @@ import org.eclipse.tracecompass.tmf.core.event.aspect.TmfContentFieldAspect;
 import org.eclipse.tracecompass.tmf.core.timestamp.ITmfTimestamp;
 
 /**
- * @author Jean-Christian Kouame
+ * This class helps to get general information for interruptions
+ * @since 2.0
  *
  */
 public class XmlIrqUtils {
 
+    /**
+     * The string for the softirq prefix
+     */
     public static final String SOFT_IRQ_PREFIX = "syn/soft"; //$NON-NLS-1$
+    /**
+     * The string for the irq prefix
+     */
     public static final String HARD_IRQ_PREFIX = "syn/irq"; //$NON-NLS-1$
 
+    /**
+     * Enum for the type of data.
+     *
+     */
     public enum STAT_TYPE {
-        NO_DATA, DATA
+        /**
+         * No statistic data
+         */
+        NO_DATA,
+        /**
+         * Contain statistic data
+         */
+        DATA
     }
 
+    /**
+     * Enum for the type of interruption
+     *
+     */
     public enum TYPE {
-        ROOT, IRQ, SOFTIRQ
+        /**
+         * The root
+         */
+        ROOT,
+        /**
+         * IRQ
+         */
+        IRQ,
+        /**
+         * Softirq
+         */
+        SOFTIRQ
     }
 
+    /**
+     * Get the label of the irq
+     *
+     * @param event
+     *            The synthetic event assiociated to this irq
+     * @param type
+     *            The type of the irq
+     * @return The label of the irq
+     */
     public static String getIRQLabel(TmfXmlSyntheticEvent event, TYPE type) {
         if (event == null) {
             return type.toString();

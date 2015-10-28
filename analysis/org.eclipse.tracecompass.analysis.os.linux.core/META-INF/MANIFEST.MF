@@ -14,7 +14,8 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.tracecompass.tmf.core,
  org.eclipse.tracecompass.segmentstore.core,
  org.eclipse.tracecompass.analysis.timing.core,
- org.eclipse.tracecompass.tmf.ctf.core
+ org.eclipse.tracecompass.tmf.ctf.core,
+ org.eclipse.tracecompass.tmf.analysis.xml.core
 Import-Package: com.google.common.base,
  com.google.common.collect,
  com.google.common.hash
@@ -22,6 +23,7 @@ Export-Package: org.eclipse.tracecompass.analysis.os.linux.core.cpuusage,
  org.eclipse.tracecompass.analysis.os.linux.core.event.aspect,
  org.eclipse.tracecompass.analysis.os.linux.core.kernelanalysis,
  org.eclipse.tracecompass.analysis.os.linux.core.latency,
+ org.eclipse.tracecompass.analysis.os.linux.core.latency.irq,
  org.eclipse.tracecompass.analysis.os.linux.core.model,
  org.eclipse.tracecompass.analysis.os.linux.core.trace,
  org.eclipse.tracecompass.internal.analysis.os.linux.core;x-internal:=true,

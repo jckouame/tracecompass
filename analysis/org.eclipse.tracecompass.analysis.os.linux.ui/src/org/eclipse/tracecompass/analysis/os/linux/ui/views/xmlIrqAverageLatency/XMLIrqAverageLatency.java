@@ -1,4 +1,4 @@
-/*******************************************************************************
+/******************************************************************************
  * Copyright (c) 2015 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
@@ -7,9 +7,9 @@
  * http://www.eclipse.org/legal/epl-v10.html
  *
  * Contributors:
- *   Jean-christian Kouame - Initial API and implementation
+ *   Jean-Christian Kouame - Initial API and implementation
  *******************************************************************************/
-package org.eclipse.tracecompass.analysis.os.linux.ui.xmlIrqLatency;
+package org.eclipse.tracecompass.analysis.os.linux.ui.views.xmlIrqAverageLatency;
 
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.tracecompass.common.core.NonNullUtils;
@@ -19,24 +19,24 @@ import org.eclipse.tracecompass.tmf.core.trace.TmfTraceManager;
 import org.eclipse.tracecompass.tmf.ui.views.TmfView;
 
 /**
- * Displays the IRQ latency analysis in a tree table
+ * Displays the IRQ average latency analysis in a tree table
  *
  */
-public class XMLIrqLatency extends TmfView {
+public class XMLIrqAverageLatency extends TmfView {
 
-    private final static String ID = "org.eclipse.tracecompass.analysis.os.linux.ui.xmlIrqLatency"; //$NON-NLS-1$
-    private XMLIrqLatencyViewer fViewer;
+    private final static String ID = "org.eclipse.tracecompass.tmf.ui.xmlIrqAverageLatency"; //$NON-NLS-1$
+    private XMLIrqAverageLatencyViewer fViewer;
 
     /**
      * Constructor
      */
-    public XMLIrqLatency() {
+    public XMLIrqAverageLatency() {
         super(ID);
     }
 
     @Override
     public void createPartControl(Composite parent) {
-        fViewer = new XMLIrqLatencyViewer(NonNullUtils.checkNotNull(parent));
+        fViewer = new XMLIrqAverageLatencyViewer(NonNullUtils.checkNotNull(parent));
         ITmfTrace trace = TmfTraceManager.getInstance().getActiveTrace();
         if (trace != null) {
             fViewer.traceSelected(new TmfTraceSelectedSignal(this, trace));

@@ -1,18 +1,17 @@
-package org.eclipse.tracecompass.internal.analysis.os.linux.ui.views.model;
+package org.eclipse.tracecompass.analysis.os.linux.core.latency.irq;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.tracecompass.analysis.os.linux.core.latency.irq.XmlIrqUtils.TYPE;
 import org.eclipse.tracecompass.common.core.NonNullUtils;
-import org.eclipse.tracecompass.internal.analysis.os.linux.ui.views.resources.XmlIrqUtils;
-import org.eclipse.tracecompass.internal.analysis.os.linux.ui.views.resources.XmlIrqUtils.TYPE;
 import org.eclipse.tracecompass.segmentstore.core.ISegment;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.model.TmfXmlSyntheticEvent;
 import org.eclipse.tracecompass.tmf.core.event.aspect.TmfContentFieldAspect;
 
 /**
- * @author Jean-Christian Kouame
+ * This class represents an interruption
  * @since 2.0
  *
  */
@@ -22,14 +21,33 @@ public class IRQ implements ISegment {
      */
     private static final long serialVersionUID = 2111306681847732952L;
 
+    /**
+     * The synthetic event corresponding to this irq
+     */
     public @Nullable TmfXmlSyntheticEvent synIrq;
-
+    /**
+     * The list of child elements
+     */
     public List<IRQ> childs;
+    /**
+     * The label of this interruption
+     */
     public String label;
+    /**
+     * The type of this interrupt
+     */
     public TYPE type;
-    private TmfContentFieldAspect entryAspect = new TmfContentFieldAspect("entry", "entry");
-    private TmfContentFieldAspect softExitAspect = new TmfContentFieldAspect("exit", "exit");
+    private TmfContentFieldAspect entryAspect = new TmfContentFieldAspect("entry", "entry"); //$NON-NLS-1$ //$NON-NLS-2$
+    private TmfContentFieldAspect softExitAspect = new TmfContentFieldAspect("exit", "exit"); //$NON-NLS-1$ //$NON-NLS-2$
 
+    /**
+     * Constructor
+     *
+     * @param synEvent
+     *            The synthetic event for this interruption
+     * @param type
+     *            The type of the interruption
+     */
     public IRQ(@Nullable TmfXmlSyntheticEvent synEvent, TYPE type) {
         this.type = type;
         synIrq = synEvent;
@@ -66,6 +84,11 @@ public class IRQ implements ISegment {
         return -1;
     }
 
+    /**
+     * Get the duration of the first step of this interruption pattern
+     *
+     * @return The duration
+     */
     public long getD1() {
         if (synIrq != null && type == TYPE.SOFTIRQ) {
             return Long.parseLong(NonNullUtils.nullToEmptyString(entryAspect.resolve(synIrq))) - NonNullUtils.checkNotNull(synIrq).getTimestamp().getValue();
@@ -73,6 +96,11 @@ public class IRQ implements ISegment {
         return -1;
     }
 
+    /**
+     * Get the duration of the second step of this interruption pattern
+     *
+     * @return The duration
+     */
     public long getD2() {
         if (synIrq != null) {
             if (type == TYPE.IRQ) {

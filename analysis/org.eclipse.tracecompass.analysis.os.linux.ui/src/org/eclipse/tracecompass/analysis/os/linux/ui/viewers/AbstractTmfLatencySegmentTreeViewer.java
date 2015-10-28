@@ -59,7 +59,7 @@ import com.google.common.collect.Iterables;
  * @since 2.0
  *
  */
-public abstract class AbstractTmfLatencySegmentAnalysisViewer extends TmfViewer {
+public abstract class AbstractTmfLatencySegmentTreeViewer extends TmfViewer {
 
     private TreeViewer fTreeViewer;
     private Thread fUpdateThread;
@@ -72,7 +72,7 @@ public abstract class AbstractTmfLatencySegmentAnalysisViewer extends TmfViewer 
      * @param parent
      *            The parent composite
      */
-    public AbstractTmfLatencySegmentAnalysisViewer(Composite parent) {
+    public AbstractTmfLatencySegmentTreeViewer(Composite parent) {
         super(parent);
         fTreeViewer = new TreeViewer(parent, SWT.VIRTUAL);
 
@@ -166,10 +166,14 @@ public abstract class AbstractTmfLatencySegmentAnalysisViewer extends TmfViewer 
                 final Object root = treeViewer.getInput();
                 sortEntries(comparator, root);
                 treeViewer.refresh();
-                if (treeViewer.getTree().getSortDirection() == SWT.UP) {
-                    treeViewer.getTree().setSortDirection(SWT.DOWN);
+                switchSortDirection(treeViewer);
+            }
+
+            private void switchSortDirection(final TreeViewer tv) {
+                if (tv.getTree().getSortDirection() == SWT.UP) {
+                    tv.getTree().setSortDirection(SWT.DOWN);
                 } else {
-                    treeViewer.getTree().setSortDirection(SWT.UP);
+                    tv.getTree().setSortDirection(SWT.UP);
                 }
             }
 
@@ -388,9 +392,9 @@ public abstract class AbstractTmfLatencySegmentAnalysisViewer extends TmfViewer 
 
         private Object fInput;
         final TreeViewer fTreeViewer;
-        final AbstractTmfLatencySegmentAnalysisViewer fViewer;
+        final AbstractTmfLatencySegmentTreeViewer fViewer;
 
-        public LatencyContentProvider(AbstractTmfLatencySegmentAnalysisViewer viewer) {
+        public LatencyContentProvider(AbstractTmfLatencySegmentTreeViewer viewer) {
             this.fViewer = viewer;
             this.fTreeViewer = viewer.fTreeViewer;
         }

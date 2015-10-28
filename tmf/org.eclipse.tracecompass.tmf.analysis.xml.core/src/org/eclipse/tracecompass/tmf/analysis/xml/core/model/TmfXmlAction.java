@@ -44,7 +44,6 @@ public class TmfXmlAction implements ISingleAction {
      * @param container
      *            The state system container this action belongs to
      */
-    @SuppressWarnings("null")
     public TmfXmlAction(@Nullable ITmfXmlModelFactory modelFactory, Element node, IXmlStateSystemContainer container) {
         fId = node.getAttribute(TmfXmlStrings.ID);
 

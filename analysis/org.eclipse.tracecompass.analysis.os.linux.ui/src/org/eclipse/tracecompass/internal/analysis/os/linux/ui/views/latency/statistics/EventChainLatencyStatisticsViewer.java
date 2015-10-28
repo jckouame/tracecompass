@@ -19,6 +19,7 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.tracecompass.internal.analysis.os.linux.core.latency.statistics.EventChainLatencyStatisticsAnalysisModule;
 import org.eclipse.tracecompass.internal.analysis.os.linux.core.latency.statistics.SegmentStoreStatistics;
+import org.eclipse.tracecompass.segmentstore.core.BasicSegment;
 import org.eclipse.tracecompass.tmf.core.analysis.TmfAbstractAnalysisModule;
 import org.eclipse.tracecompass.tmf.ui.viewers.tree.ITmfTreeViewerEntry;
 import org.eclipse.tracecompass.tmf.ui.viewers.tree.TmfTreeViewerEntry;
@@ -78,6 +79,8 @@ public class EventChainLatencyStatisticsViewer extends AbstractSegmentStoreStati
 
         TmfTreeViewerEntry root = new TmfTreeViewerEntry(""); //$NON-NLS-1$
         List<ITmfTreeViewerEntry> entryList = root.getChildren();
+        long maximum = 0;
+        long minimum = 0;
         if ((entry != null) && (entry.getNbSegments() > 0)) {
             TmfTreeViewerEntry child = new SegmentStoreStatisticsEntry(checkNotNull(Messages.LatencyStatistics_TotalLabel), checkNotNull(entry));
             entryList.add(child);
@@ -85,10 +88,21 @@ public class EventChainLatencyStatisticsViewer extends AbstractSegmentStoreStati
             int i = 0;
             for (SegmentStoreStatistics subEntry : entry.getChildren()) {
                 child.addChild(new SegmentStoreStatisticsEntry(checkNotNull(DURATION_NAMES[i]), checkNotNull(subEntry)));
+                maximum += subEntry.getMax();
+                minimum += subEntry.getMin();
                 i++;
             }
         }
+        SegmentStoreStatistics max = new SegmentStoreStatistics();
+        max.update(new BasicSegment(0, minimum));
+        max.update(new BasicSegment(0, maximum));
+
+        TmfTreeViewerEntry maximumEntry = new SegmentStoreStatisticsEntry(checkNotNull("Sum"), checkNotNull(max)); //$NON-NLS-1$
+        entryList.add(maximumEntry);
+
         return root;
     }
+
+
 
 }

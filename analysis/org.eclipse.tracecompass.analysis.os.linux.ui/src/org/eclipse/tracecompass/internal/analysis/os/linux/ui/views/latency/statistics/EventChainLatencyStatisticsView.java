@@ -14,6 +14,7 @@ package org.eclipse.tracecompass.internal.analysis.os.linux.ui.views.latency.sta
 
 import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
 
+import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.swt.widgets.Composite;
 
 /**
@@ -29,5 +30,9 @@ public class EventChainLatencyStatisticsView extends AbstractSegmentStoreStatist
     @Override
     protected AbstractSegmentStoreStatisticsViewer createSegmentStoreStatisticsViewer(Composite parent) {
         return checkNotNull((AbstractSegmentStoreStatisticsViewer) new EventChainLatencyStatisticsViewer(checkNotNull(parent)));
+    }
+    @Override
+    public void createPartControl(@Nullable Composite parent) {
+        super.createPartControl(parent);
     }
 }

@@ -20,4 +20,6 @@ public interface AnalysisTimingImageConstants {
     String ICONS_PATH = "icons/"; //$NON-NLS-1$
 
     String IMG_UI_ZOOM_OUT_MENU = ICONS_PATH + "elcl16/zoomout_nav.gif";
+
+    String IMG_UI_TOGGLE_TABLE_MENU = ICONS_PATH + "elcl16/latency.png";
 }

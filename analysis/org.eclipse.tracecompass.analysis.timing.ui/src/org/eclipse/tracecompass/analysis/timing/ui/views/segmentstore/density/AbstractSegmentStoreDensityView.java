@@ -36,6 +36,8 @@ public abstract class AbstractSegmentStoreDensityView extends TmfView {
 
     private @Nullable AbstractSegmentStoreDensityViewer fDensityViewer;
     private @Nullable AbstractSegmentStoreTableViewer fTableViewer;
+    private boolean fTableShown;
+    private SashForm fSashForm;
 
     /**
      * Constructs a segment store density view
@@ -45,6 +47,7 @@ public abstract class AbstractSegmentStoreDensityView extends TmfView {
      */
     public AbstractSegmentStoreDensityView(String viewName) {
         super(viewName);
+        fTableShown = true;
     }
 
     /**
@@ -73,17 +76,20 @@ public abstract class AbstractSegmentStoreDensityView extends TmfView {
     public void createPartControl(@Nullable Composite parent) {
         super.createPartControl(parent);
 
-        final SashForm sashForm = new SashForm(parent, SWT.NONE);
+        fSashForm = new SashForm(parent, SWT.NONE);
 
-        fTableViewer = createSegmentStoreTableViewer(sashForm);
-        fDensityViewer = createSegmentStoreDensityViewer(sashForm);
+        fTableViewer = createSegmentStoreTableViewer(fSashForm);
+        fDensityViewer = createSegmentStoreDensityViewer(fSashForm);
         fDensityViewer.addDataListener(new DataChangedListener());
 
-        sashForm.setWeights(DEFAULT_WEIGHTS);
+        fSashForm.setWeights(DEFAULT_WEIGHTS);
 
         Action zoomOut = new ZoomOutAction(this);
         IToolBarManager toolBar = getViewSite().getActionBars().getToolBarManager();
         toolBar.add(zoomOut);
+        Action toggleTable = new ToggleTableAction(this);
+        toolBar.add(toggleTable);
+
         ITmfTrace trace = TmfTraceManager.getInstance().getActiveTrace();
         if (trace != null && fDensityViewer != null) {
             fDensityViewer.loadTrace(trace);
@@ -134,5 +140,15 @@ public abstract class AbstractSegmentStoreDensityView extends TmfView {
     // Package-visible on purpose for ZoomOutAction
     @Nullable AbstractSegmentStoreDensityViewer getDensityViewer() {
         return fDensityViewer;
+    }
+
+    // Package-visible on purpose for ToggleTableAction
+    void toggleTable() {
+        fTableShown = !fTableShown;
+        if (fTableShown) {
+            fSashForm.setWeights(new int[] {4, 6});
+        } else {
+            fSashForm.setWeights(new int[] {0, 1});
+        }
     }
 }

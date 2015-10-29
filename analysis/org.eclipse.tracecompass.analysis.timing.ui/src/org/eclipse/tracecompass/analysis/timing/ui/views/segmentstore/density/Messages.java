@@ -39,6 +39,11 @@ public class Messages extends NLS {
      */
     public static String AbstractSegmentStoreDensityViewer_SeriesLabel;
 
+    /**
+     * Tool-tip for the Toggle Table action
+     */
+    public static String AbstractSegmentStoreDensityViewer_ToggleTableActionToolTipText;
+
     static {
         // initialize resource bundle
         NLS.initializeMessages(BUNDLE_NAME, Messages.class);

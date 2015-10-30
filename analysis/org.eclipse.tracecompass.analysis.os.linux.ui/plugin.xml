@@ -103,7 +103,7 @@
             category="org.eclipse.linuxtools.lttng2.ui.views.category"
             class="org.eclipse.tracecompass.analysis.os.linux.ui.views.xmlIrqLatency.XMLIrqLatency"
             id="org.eclipse.tracecompass.analysis.os.linux.ui.xmlIrqLatency"
-            name="XML IRQ Latency"
+            name="IRQ Latency Analysis"
             restorable="true">
       </view>
       <view
@@ -111,7 +111,7 @@
             category="org.eclipse.linuxtools.lttng2.ui.views.category"
             class="org.eclipse.tracecompass.analysis.os.linux.ui.views.xmlIrqAverageLatency.XMLIrqAverageLatency"
             id="org.eclipse.tracecompass.analysis.os.linux.ui.xmlIrqAverageLatency"
-            name="XML IRQ Average Latency"
+            name="IRQ Latency Statistics"
             restorable="true">
       </view>
       <view

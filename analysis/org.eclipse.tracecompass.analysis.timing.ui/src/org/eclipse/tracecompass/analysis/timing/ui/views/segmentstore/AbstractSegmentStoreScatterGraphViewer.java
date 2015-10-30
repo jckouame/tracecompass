@@ -209,7 +209,7 @@ public abstract class AbstractSegmentStoreScatterGraphViewer extends TmfCommonXL
     /**
      * Data to display
      */
-    private Collection<ISegment> fDisplayData = NonNullUtils.checkNotNull(Collections.<ISegment> emptyList());
+    protected Collection<ISegment> fDisplayData = NonNullUtils.checkNotNull(Collections.<ISegment> emptyList());
 
     /**
      * Analysis completion listener
@@ -356,6 +356,14 @@ public abstract class AbstractSegmentStoreScatterGraphViewer extends TmfCommonXL
         }
         swtChart.redraw();
 
+        ajustTimeAlignment(swtChart);
+    }
+
+    /**
+     * @param swtChart
+     *            The chart of this view
+     */
+    protected void ajustTimeAlignment(final Chart swtChart) {
         if (isSendTimeAlignSignals()) {
             // The width of the chart might have changed and its
             // time axis might be misaligned with the other views
@@ -375,11 +383,13 @@ public abstract class AbstractSegmentStoreScatterGraphViewer extends TmfCommonXL
     @Override
     protected ILineSeries addSeries(@Nullable String seriesName) {
         ISeriesSet seriesSet = getSwtChart().getSeriesSet();
+        int seriesCount = seriesSet.getSeries().length;
         ILineSeries series = (ILineSeries) seriesSet.createSeries(SeriesType.LINE, seriesName);
         series.setVisible(true);
         series.enableArea(false);
         series.setLineStyle(LineStyle.NONE);
         series.setSymbolType(PlotSymbolType.DIAMOND);
+        series.setSymbolColor(Display.getDefault().getSystemColor(LINE_COLORS[seriesCount % LINE_COLORS.length]));
         return series;
     }
 

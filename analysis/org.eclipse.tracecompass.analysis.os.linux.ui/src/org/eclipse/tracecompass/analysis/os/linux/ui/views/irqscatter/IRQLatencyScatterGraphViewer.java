@@ -10,9 +10,9 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.tracecompass.analysis.os.linux.core.latency.irq.IRQ;
 import org.eclipse.tracecompass.analysis.os.linux.core.latency.irq.IRQLatencyAnalysis;
 import org.eclipse.tracecompass.analysis.os.linux.core.latency.irq.XmlIrqUtils.TYPE;
-import org.eclipse.tracecompass.analysis.os.linux.ui.viewers.AbstractTmfLatencySegmentScatterViewer;
+import org.eclipse.tracecompass.analysis.timing.core.segmentstore.AbstractSegmentStoreAnalysisModule;
+import org.eclipse.tracecompass.analysis.timing.ui.views.segmentstore.AbstractSegmentStoreScatterGraphViewer;
 import org.eclipse.tracecompass.segmentstore.core.ISegment;
-import org.eclipse.tracecompass.tmf.core.analysis.TmfAbstractAnalysisModule;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTraceUtils;
 import org.eclipse.tracecompass.tmf.ui.viewers.xycharts.TmfChartTimeStampFormat;
@@ -27,7 +27,7 @@ import org.swtchart.Range;
  * @author Jean-Christian Kouame
  *
  */
-public class IRQLatencyScatterGraphViewer extends AbstractTmfLatencySegmentScatterViewer {
+public class IRQLatencyScatterGraphViewer extends AbstractSegmentStoreScatterGraphViewer {
 
     /**
      * Constructor
@@ -46,7 +46,7 @@ public class IRQLatencyScatterGraphViewer extends AbstractTmfLatencySegmentScatt
     }
 
     @Override
-    protected @Nullable TmfAbstractAnalysisModule getAnalysisModuleFromTrace(@NonNull ITmfTrace trace) {
+    protected @Nullable AbstractSegmentStoreAnalysisModule getSegmentStoreAnalysisModule(@NonNull ITmfTrace trace) {
         return TmfTraceUtils.getAnalysisModuleOfClass(trace, IRQLatencyAnalysis.class, IRQLatencyAnalysis.ID);
     }
 

@@ -54,7 +54,7 @@
          </tracetype>
       </module>
       <module
-            analysis_module="org.eclipse.tracecompass.analysis.os.linux.core.latency.irq.IRQLatencyAnalysis1"
+            analysis_module="org.eclipse.tracecompass.analysis.os.linux.core.latency.irq.IRQLatencyAnalysis"
             automatic="false"
             id="org.eclipse.tracecompass.analysis.os.linux.core.latency.irq.xml"
             name="irq xml based latency analysis 1">

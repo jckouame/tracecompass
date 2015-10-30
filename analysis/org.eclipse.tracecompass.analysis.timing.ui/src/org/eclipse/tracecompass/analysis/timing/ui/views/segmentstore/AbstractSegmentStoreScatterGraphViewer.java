@@ -24,9 +24,13 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.jface.action.IMenuListener;
+import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.action.MenuManager;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Menu;
 import org.eclipse.tracecompass.analysis.timing.core.segmentstore.AbstractSegmentStoreAnalysisModule;
 import org.eclipse.tracecompass.analysis.timing.core.segmentstore.IAnalysisProgressListener;
 import org.eclipse.tracecompass.common.core.NonNullUtils;
@@ -223,6 +227,8 @@ public abstract class AbstractSegmentStoreScatterGraphViewer extends TmfCommonXL
 
     private @Nullable Job fCompactingJob;
 
+    private MenuManager fTablePopupMenuManager;
+
     // ------------------------------------------------------------------------
     // Constructor
     // ------------------------------------------------------------------------
@@ -246,6 +252,29 @@ public abstract class AbstractSegmentStoreScatterGraphViewer extends TmfCommonXL
         ITmfTrace trace = TmfTraceManager.getInstance().getActiveTrace();
         initializeModule(trace);
         getSwtChart().getLegend().setVisible(false);
+
+        fTablePopupMenuManager = new MenuManager();
+        fTablePopupMenuManager.setRemoveAllWhenShown(true);
+
+        fTablePopupMenuManager.addMenuListener(new IMenuListener() {
+            @Override
+            public void menuAboutToShow(final @Nullable IMenuManager manager) {
+                    if (manager != null) {
+                        appendToTablePopupMenu(manager);
+                    }
+            }
+        });
+
+        Menu tablePopup = fTablePopupMenuManager.createContextMenu(getSwtChart());
+        getSwtChart().setMenu(tablePopup);
+    }
+
+    /**
+     * Add items to the menu manager
+     *
+     * @param manager The menu manager
+     */
+    protected void appendToTablePopupMenu(IMenuManager manager) {
     }
 
     private final void initializeModule(@Nullable ITmfTrace trace) {

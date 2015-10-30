@@ -35,8 +35,8 @@ public class IRQLatencyScatterGraphView extends TmfChartView {
 
     @Override
     protected TmfXYChartViewer createChartViewer(@Nullable Composite parent) {
-        fScatterViewer = new IRQLatencyScatterGraphViewer(NonNullUtils.checkNotNull(parent), nullToEmptyString(Messages.LatencyScatterView_title), nullToEmptyString(Messages.LatencyScatterView_xAxis),
-                nullToEmptyString(Messages.LatencyScatterView_yAxis));
+        fScatterViewer = new IRQLatencyScatterGraphViewer(NonNullUtils.checkNotNull(parent), nullToEmptyString(Messages.SystemCallLatencyScatterView_title), nullToEmptyString(Messages.SystemCallLatencyScatterView_xAxis),
+                nullToEmptyString(Messages.SystemCallLatencyScatterView_yAxis));
         return fScatterViewer;
     }
 

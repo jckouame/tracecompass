@@ -57,7 +57,7 @@ public abstract class TmfCommonXLineChartViewer extends TmfXYChartViewer {
      * @since 2.0
      *
      */
-    protected static final int[] LINE_COLORS = { SWT.COLOR_BLUE, SWT.COLOR_RED, SWT.COLOR_GREEN,
+    public static final int[] LINE_COLORS = { SWT.COLOR_BLUE, SWT.COLOR_RED, SWT.COLOR_GREEN,
             SWT.COLOR_MAGENTA, SWT.COLOR_CYAN,
             SWT.COLOR_DARK_BLUE, SWT.COLOR_DARK_RED, SWT.COLOR_DARK_GREEN,
             SWT.COLOR_DARK_MAGENTA, SWT.COLOR_DARK_CYAN, SWT.COLOR_DARK_YELLOW,

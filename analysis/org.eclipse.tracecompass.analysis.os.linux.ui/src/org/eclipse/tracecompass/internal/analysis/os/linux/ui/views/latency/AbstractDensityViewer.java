@@ -18,9 +18,13 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.jface.action.IMenuListener;
+import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.action.MenuManager;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Menu;
 import org.eclipse.tracecompass.analysis.timing.core.segmentstore.AbstractSegmentStoreAnalysisModule;
 import org.eclipse.tracecompass.analysis.timing.core.segmentstore.IAnalysisProgressListener;
 import org.eclipse.tracecompass.common.core.NonNullUtils;
@@ -55,6 +59,7 @@ public abstract class AbstractDensityViewer extends TmfViewer {
 
     interface ContentChangedListener {
         void contentChanged(List<ISegment> data);
+
         void selectionChanged(List<ISegment> data);
     }
 
@@ -67,6 +72,7 @@ public abstract class AbstractDensityViewer extends TmfViewer {
     private MouseDragZoomProvider fDragZoomProvider;
     private MouseSelectionProvider fDragProvider;
     private SimpleTooltipProvider fTooltipProvider;
+    private MenuManager fTablePopupMenuManager;
 
     private @Nullable ITmfTrace fTrace;
     private List<ContentChangedListener> fListeners;
@@ -94,11 +100,35 @@ public abstract class AbstractDensityViewer extends TmfViewer {
         fDragProvider = new MouseSelectionProvider(this);
         fDragProvider.register();
         fTooltipProvider = new SimpleTooltipProvider(this);
-        fTooltipProvider.register();
+
+        fTablePopupMenuManager = new MenuManager();
+        fTablePopupMenuManager.setRemoveAllWhenShown(true);
+
+        fTablePopupMenuManager.addMenuListener(new IMenuListener() {
+            @Override
+            public void menuAboutToShow(final @Nullable IMenuManager manager) {
+                if (manager != null) {
+                    appendToTablePopupMenu(manager);
+                }
+            }
+        });
+
+        Menu tablePopup = fTablePopupMenuManager.createContextMenu(getChart());
+        getChart().setMenu(tablePopup);
+    }
+
+    /**
+     * Add items to the menu manager
+     *
+     * @param manager
+     *            The menu manager
+     */
+    protected void appendToTablePopupMenu(IMenuManager manager) {
     }
 
     /**
      * Returns the segment store analysis module
+     *
      * @param trace
      *            The trace to consider
      * @return the analysis module
@@ -106,19 +136,19 @@ public abstract class AbstractDensityViewer extends TmfViewer {
     protected @Nullable abstract AbstractSegmentStoreAnalysisModule getSegmentStoreAnalysisModule(ITmfTrace trace);
 
     @Nullable
-    private static ITmfTrace getTrace() {
+    protected static ITmfTrace getTrace() {
         return TmfTraceManager.getInstance().getActiveTrace();
     }
 
-    private void updateDisplay(List<ISegment> data) {
+    protected void updateDisplay(List<ISegment> data) {
         if (data.isEmpty()) {
             return;
         }
-        IBarSeries series = (IBarSeries) fChart.getSeriesSet().createSeries(SeriesType.BAR, Messages.LatencyDensityViewer_SeriesLabel);
+        IBarSeries series = (IBarSeries) getChart().getSeriesSet().createSeries(SeriesType.BAR, Messages.LatencyDensityViewer_SeriesLabel);
         series.setVisible(true);
         series.setBarPadding(0);
         int barWidth = 4;
-        final int width = fChart.getPlotArea().getBounds().width / barWidth;
+        final int width = getChart().getPlotArea().getBounds().width / barWidth;
         double[] xOrigSeries = new double[width];
         double[] yOrigSeries = new double[width];
         Arrays.fill(yOrigSeries, 1.0);
@@ -143,15 +173,15 @@ public abstract class AbstractDensityViewer extends TmfViewer {
         }
         series.setYSeries(yOrigSeries);
         series.setXSeries(xOrigSeries);
-        fChart.getAxisSet().getXAxis(0).setRange(new Range(minX, maxLength));
-        fChart.getAxisSet().getYAxis(0).setRange(new Range(1.0, maxY));
-        fChart.getAxisSet().getYAxis(0).enableLogScale(true);
-        fChart.redraw();
+        getChart().getAxisSet().getXAxis(0).setRange(new Range(minX, maxLength));
+        getChart().getAxisSet().getYAxis(0).setRange(new Range(1.0, maxY));
+        getChart().getAxisSet().getYAxis(0).enableLogScale(true);
+        getChart().redraw();
     }
 
     @Override
     public Chart getControl() {
-        return fChart;
+        return getChart();
     }
 
     public void select(Range durationRange) {
@@ -234,7 +264,7 @@ public abstract class AbstractDensityViewer extends TmfViewer {
 
     @Override
     public void refresh() {
-        fChart.redraw();
+        getChart().redraw();
     }
 
     @Override
@@ -243,7 +273,7 @@ public abstract class AbstractDensityViewer extends TmfViewer {
             fAnalysisModule.removeListener(fListener);
         }
         fDragZoomProvider.deregister();
-        fTooltipProvider.deregister();
+        getTooltipProvider().deregister();
         fDragProvider.deregister();
         super.dispose();
     }
@@ -321,7 +351,7 @@ public abstract class AbstractDensityViewer extends TmfViewer {
      * Clears the view content.
      */
     private void clearContent() {
-        final Chart chart = fChart;
+        final Chart chart = getChart();
         if (!chart.isDisposed()) {
             ISeriesSet set = chart.getSeriesSet();
             ISeries[] series = set.getSeries();
@@ -341,5 +371,21 @@ public abstract class AbstractDensityViewer extends TmfViewer {
 
     public void removeContentChangedListener(ContentChangedListener contentChangedListener) {
         fListeners.remove(contentChangedListener);
+    }
+
+    protected Chart getChart() {
+        return fChart;
+    }
+
+    private SimpleTooltipProvider getTooltipProvider() {
+        return fTooltipProvider;
+    }
+
+    protected void setTooltipProvider(SimpleTooltipProvider tooltipProvider) {
+        if (fTooltipProvider != null) {
+            fTooltipProvider.deregister();
+        }
+        fTooltipProvider = tooltipProvider;
+        tooltipProvider.register();
     }
 }

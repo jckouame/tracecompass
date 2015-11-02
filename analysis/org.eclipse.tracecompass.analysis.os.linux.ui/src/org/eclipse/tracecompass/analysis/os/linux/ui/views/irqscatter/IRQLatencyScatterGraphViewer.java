@@ -174,7 +174,7 @@ public class IRQLatencyScatterGraphViewer extends AbstractSegmentStoreScatterGra
                     }
                 };
             } else {
-                softIRQAction = new Action("Show softIRQs") {
+                softIRQAction = new Action("Show SoftIRQs") {
                     @Override
                     public void run() {
                         fShowSoftIRQ = !fShowSoftIRQ;

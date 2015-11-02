@@ -15,7 +15,7 @@ import org.eclipse.osgi.util.NLS;
 /**
  * @author Marc-Andre Laperle
  */
-@NonNullByDefault(false)
+@NonNullByDefault({})
 public class Messages extends NLS {
     private static final String BUNDLE_NAME = "org.eclipse.tracecompass.analysis.timing.ui.views.segmentstore.density.messages"; //$NON-NLS-1$
 

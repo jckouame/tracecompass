@@ -37,7 +37,7 @@ public abstract class AbstractSegmentStoreDensityView extends TmfView {
     private @Nullable AbstractSegmentStoreDensityViewer fDensityViewer;
     private @Nullable AbstractSegmentStoreTableViewer fTableViewer;
     private boolean fTableShown;
-    private SashForm fSashForm;
+    private @Nullable SashForm fSashForm;
 
     /**
      * Constructs a segment store density view
@@ -76,13 +76,14 @@ public abstract class AbstractSegmentStoreDensityView extends TmfView {
     public void createPartControl(@Nullable Composite parent) {
         super.createPartControl(parent);
 
-        fSashForm = new SashForm(parent, SWT.NONE);
+        final SashForm sashForm = new SashForm(parent, SWT.NONE);
+        fSashForm = sashForm;
 
-        fTableViewer = createSegmentStoreTableViewer(fSashForm);
-        fDensityViewer = createSegmentStoreDensityViewer(fSashForm);
+        fTableViewer = createSegmentStoreTableViewer(sashForm);
+        fDensityViewer = createSegmentStoreDensityViewer(sashForm);
         fDensityViewer.addDataListener(new DataChangedListener());
 
-        fSashForm.setWeights(DEFAULT_WEIGHTS);
+        sashForm.setWeights(DEFAULT_WEIGHTS);
 
         Action zoomOut = new ZoomOutAction(this);
         IToolBarManager toolBar = getViewSite().getActionBars().getToolBarManager();
@@ -144,11 +145,16 @@ public abstract class AbstractSegmentStoreDensityView extends TmfView {
 
     // Package-visible on purpose for ToggleTableAction
     void toggleTable() {
+        final SashForm sashForm = fSashForm;
+        if (sashForm == null) {
+            return;
+        }
+
         fTableShown = !fTableShown;
         if (fTableShown) {
-            fSashForm.setWeights(new int[] {4, 6});
+            sashForm.setWeights(new int[] {4, 6});
         } else {
-            fSashForm.setWeights(new int[] {0, 1});
+            sashForm.setWeights(new int[] {0, 1});
         }
     }
 }

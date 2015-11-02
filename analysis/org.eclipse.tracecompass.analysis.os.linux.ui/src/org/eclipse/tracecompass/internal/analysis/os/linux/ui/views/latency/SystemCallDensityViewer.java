@@ -11,7 +11,7 @@ package org.eclipse.tracecompass.internal.analysis.os.linux.ui.views.latency;
 
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.tracecompass.analysis.os.linux.core.latency.LatencyAnalysis;
+import org.eclipse.tracecompass.analysis.os.linux.core.latency.SystemCallLatencyAnalysis;
 import org.eclipse.tracecompass.analysis.timing.core.segmentstore.AbstractSegmentStoreAnalysisModule;
 import org.eclipse.tracecompass.analysis.timing.ui.views.segmentstore.density.AbstractSegmentStoreDensityViewer;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
@@ -37,6 +37,6 @@ public class SystemCallDensityViewer extends AbstractSegmentStoreDensityViewer {
 
     @Override
     protected @Nullable AbstractSegmentStoreAnalysisModule getSegmentStoreAnalysisModule(ITmfTrace trace) {
-        return TmfTraceUtils.getAnalysisModuleOfClass(trace, LatencyAnalysis.class, LatencyAnalysis.ID);
+        return TmfTraceUtils.getAnalysisModuleOfClass(trace, SystemCallLatencyAnalysis.class, SystemCallLatencyAnalysis.ID);
     }
 }

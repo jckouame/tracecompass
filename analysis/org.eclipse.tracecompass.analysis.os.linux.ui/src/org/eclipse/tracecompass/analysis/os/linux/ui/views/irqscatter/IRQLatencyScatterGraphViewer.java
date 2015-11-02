@@ -6,6 +6,9 @@ import java.util.Iterator;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.tracecompass.analysis.os.linux.core.latency.irq.IRQ;
 import org.eclipse.tracecompass.analysis.os.linux.core.latency.irq.IRQLatencyAnalysis;
@@ -28,6 +31,9 @@ import org.swtchart.Range;
  *
  */
 public class IRQLatencyScatterGraphViewer extends AbstractSegmentStoreScatterGraphViewer {
+
+    private boolean fShowIRQ = true;
+    private boolean fShowSoftIRQ = true;
 
     /**
      * Constructor
@@ -117,6 +123,9 @@ public class IRQLatencyScatterGraphViewer extends AbstractSegmentStoreScatterGra
         /* Find the minimal and maximum values in this series */
         series2.setYSeries(ySeries2);
 
+
+        series1.setVisible(fShowIRQ);
+        series2.setVisible(fShowSoftIRQ);
         final IAxis xAxis = swtChart.getAxisSet().getXAxis(0);
         IAxisTick xTick = xAxis.getTick();
         xTick.setFormat(tmfChartTimeStampFormat);
@@ -128,5 +137,54 @@ public class IRQLatencyScatterGraphViewer extends AbstractSegmentStoreScatterGra
         swtChart.redraw();
 
         ajustTimeAlignment(swtChart);
+    }
+
+    @Override
+    protected void appendToTablePopupMenu(IMenuManager manager) {
+        if (getTrace() != null) {
+            IAction IRQAction;
+            if (fShowIRQ == true) {
+                IRQAction = new Action("Hide IRQs") {
+                    @Override
+                    public void run() {
+                        fShowIRQ = !fShowIRQ;
+                        getSwtChart().getSeriesSet().getSeries(Messages.IRQLatencyScatterGraphViewer_IRQ_legend).setVisible(false);
+                        getSwtChart().redraw();
+                    }
+                };
+            } else {
+                IRQAction = new Action("Show IRQs") {
+                    @Override
+                    public void run() {
+                        fShowIRQ = !fShowIRQ;
+                        getSwtChart().getSeriesSet().getSeries(Messages.IRQLatencyScatterGraphViewer_IRQ_legend).setVisible(true);
+                        getSwtChart().redraw();
+                    }
+                };
+            }
+
+            IAction softIRQAction;
+            if (fShowSoftIRQ == true) {
+                softIRQAction = new Action("Hide SoftIRQs") {
+                    @Override
+                    public void run() {
+                        fShowSoftIRQ = !fShowSoftIRQ;
+                        getSwtChart().getSeriesSet().getSeries(Messages.IRQLatencyScatterGraphViewer_SoftIRQ_legend).setVisible(false);
+                        getSwtChart().redraw();
+                    }
+                };
+            } else {
+                softIRQAction = new Action("Show softIRQs") {
+                    @Override
+                    public void run() {
+                        fShowSoftIRQ = !fShowSoftIRQ;
+                        getSwtChart().getSeriesSet().getSeries(Messages.IRQLatencyScatterGraphViewer_SoftIRQ_legend).setVisible(true);
+                        getSwtChart().redraw();
+                    }
+                };
+            }
+            manager.add(IRQAction);
+            manager.add(softIRQAction);
+        }
     }
 }

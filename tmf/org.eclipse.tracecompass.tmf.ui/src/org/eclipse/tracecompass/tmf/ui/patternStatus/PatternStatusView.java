@@ -11,6 +11,7 @@ import java.util.Map;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.tracecompass.common.core.NonNullUtils;
 import org.eclipse.tracecompass.statesystem.core.ITmfStateSystem;
 import org.eclipse.tracecompass.statesystem.core.StateSystemUtils;
 import org.eclipse.tracecompass.statesystem.core.exceptions.AttributeNotFoundException;
@@ -24,6 +25,7 @@ import org.eclipse.tracecompass.tmf.core.statesystem.ITmfAnalysisModuleWithState
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTraceUtils;
 import org.eclipse.tracecompass.tmf.ui.patternStatus.PatternStatusEntry.Type;
+import org.eclipse.tracecompass.tmf.ui.patternStatus.PatternStatusPresentationProvider.StatusState;
 import org.eclipse.tracecompass.tmf.ui.views.timegraph.AbstractTimeGraphView;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.ITimeEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.ITimeGraphEntry;
@@ -56,9 +58,6 @@ public class PatternStatusView extends AbstractTimeGraphView {
             if (module instanceof XmlPatternStateSystemModule) {
                 ((XmlPatternStateSystemModule) module).waitForInitialization();
                 for (ITmfStateSystem ssq : module.getStateSystems()) {
-                    if (ssq == null) {
-                        return new ArrayList<>();
-                    }
                     ssList.add(ssq);
                 }
             }
@@ -155,6 +154,9 @@ public class PatternStatusView extends AbstractTimeGraphView {
                             scenarioTypeEntry = scenariosTypesMap.get(scenarioInfos[0]);
                         }
 
+                        if (scenarioTypeEntry == null) {
+                            continue;
+                        }
                         PatternStatusEntry entry = entryMap.get(scenarioQuark);
                         if (entry == null) {
                             entry = new PatternStatusEntry(scenarioQuark, trace, startTime, endTime, scenarioInfos[0], Integer.parseInt(scenarioInfos[1]), ssq, Type.STATUS);
@@ -260,8 +262,9 @@ public class PatternStatusView extends AbstractTimeGraphView {
                     }
                     int status = -1;
                     String stateValue = statusInterval.getStateValue().unboxStr();
-                    if (PatternStatusPresentationProvider.statusStates.get(stateValue) != null) {
-                        status = PatternStatusPresentationProvider.statusStates.get(stateValue).value;
+                    final @Nullable StatusState statusState = PatternStatusPresentationProvider.statusStates.get(stateValue);
+                    if (statusState != null) {
+                        status = statusState.value;
                     }
                     long time = statusInterval.getStartTime();
                     long duration = statusInterval.getEndTime() - time + 1;
@@ -287,10 +290,11 @@ public class PatternStatusView extends AbstractTimeGraphView {
                     }
                     int status = -1;
                     String stateValue = stateInterval.getStateValue().unboxStr();
-                    if (PatternStatusPresentationProvider.getStateIndex().get(stateValue) == null) {
+                    final @NonNull Map<String, Integer> stateIndex = PatternStatusPresentationProvider.getStateIndex();
+                    if (stateIndex.get(stateValue) == null) {
                         PatternStatusPresentationProvider.addNewStateItem(stateValue);
                     }
-                    status = PatternStatusPresentationProvider.getStateIndex().get(stateValue);
+                    status = NonNullUtils.checkNotNull(stateIndex.get(stateValue));
                     long time = stateInterval.getStartTime();
                     long duration = stateInterval.getEndTime() - time + 1;
                     if (!stateInterval.getStateValue().isNull()) {

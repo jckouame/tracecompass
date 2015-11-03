@@ -50,8 +50,11 @@ public class TmfXmlAction implements ISingleAction {
         fParent = container;
         if (modelFactory != null) {
             fId = node.getAttribute(TmfXmlStrings.ID);
-            List<Element> childElements = XmlUtils.getChildElements(node);
+            List<@Nullable Element> childElements = XmlUtils.getChildElements(node);
             for (Element child : childElements) {
+                if (child == null) {
+                    continue;
+                }
                 switch (child.getNodeName()) {
                 case TmfXmlStrings.STATE_CHANGE:
                     ISingleAction stateChange = new XmlStateChangeAction(modelFactory, child, container);
@@ -151,9 +154,6 @@ public class TmfXmlAction implements ISingleAction {
             fProvider = (XmlFilterStateProvider) container;
             String[] fsmToScheduleList = node.getAttribute(TmfXmlStrings.ID).split(REGEX);
             final List<String> fsmList = Arrays.asList(fsmToScheduleList);
-            if (fsmList == null) {
-                throw new IllegalArgumentException();
-            }
             fFsmToScheduleList = fsmList;
         }
 

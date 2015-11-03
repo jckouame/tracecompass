@@ -2,6 +2,8 @@ package org.eclipse.tracecompass.tmf.analysis.xml.core.model;
 
 import java.util.List;
 
+import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.tracecompass.common.core.NonNullUtils;
 import org.eclipse.tracecompass.statesystem.core.ITmfStateSystem;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.model.readwrite.TmfXmlReadWriteScenarioStatus;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.module.IXmlStateSystemContainer;
@@ -39,15 +41,12 @@ public class TmfXmlTimestampsCondition {
      */
     public TmfXmlTimestampsCondition(ITmfXmlModelFactory modelFactory, Element node, IXmlStateSystemContainer container) {
         fParent = container;
-        List<Element> childElements = XmlUtils.getChildElements(node);
+        List<@Nullable Element> childElements = XmlUtils.getChildElements(node);
         if (childElements.size() != 1) {
             throw new IllegalArgumentException("Invalid timestampsChecker declaration in XML : Only one timing condition is allowed"); //$NON-NLS-1$
         }
         Element element = childElements.get(0);
-        if (element == null) {
-            throw new IllegalArgumentException();
-        }
-        String type = childElements.get(0).getNodeName();
+        String type = NonNullUtils.checkNotNull(element).getNodeName();
         switch (type) {
         case TmfXmlStrings.TIME_RANGE:
             fTimestampsCondition = new TmfXmlTimeRangeCondition(modelFactory, element, fParent);
@@ -121,11 +120,12 @@ public class TmfXmlTimestampsCondition {
                 throw new IllegalArgumentException();
             }
             fUnit = unit;
-            List<Element> childElements = XmlUtils.getChildElements(node);
+            List<@Nullable Element> childElements = XmlUtils.getChildElements(node);
             if (childElements.size() != 1) {
                 throw new IllegalArgumentException("Invalid timestampsChecker declaration in XML : Only one timing condition is allowed"); //$NON-NLS-1$
             }
-            String type = childElements.get(0).getNodeName();
+            final Element element = NonNullUtils.checkNotNull(childElements.get(0));
+            String type = element.getNodeName();
             switch (type) {
             case TmfXmlStrings.IN:
                 fType = TimeRangeOperator.in;
@@ -137,8 +137,8 @@ public class TmfXmlTimestampsCondition {
                 break;
             }
 
-            final String begin = childElements.get(0).getAttribute(TmfXmlStrings.BEGIN);
-            final String end = childElements.get(0).getAttribute(TmfXmlStrings.END);
+            final String begin = element.getAttribute(TmfXmlStrings.BEGIN);
+            final String end = element.getAttribute(TmfXmlStrings.END);
             if (begin == null || end == null) {
                 throw new IllegalArgumentException();
             }
@@ -210,11 +210,12 @@ public class TmfXmlTimestampsCondition {
                 throw new IllegalArgumentException();
             }
             fUnit = unit;
-            List<Element> childElements = XmlUtils.getChildElements(node);
+            List<@Nullable Element> childElements = XmlUtils.getChildElements(node);
             if (childElements.size() != 1) {
                 throw new IllegalArgumentException("Invalid timestampsChecker declaration in XML : Only one timing condition is allowed"); //$NON-NLS-1$
             }
-            String type = childElements.get(0).getNodeName();
+            final Element element = NonNullUtils.checkNotNull(childElements.get(0));
+            String type = element.getNodeName();
             switch (type) {
             case TmfXmlStrings.LESS:
                 fType = ElapsedTimeOperator.less;
@@ -228,8 +229,8 @@ public class TmfXmlTimestampsCondition {
             default:
                 break;
             }
-            final String reference = childElements.get(0).getAttribute(TmfXmlStrings.SINCE);
-            final String value = childElements.get(0).getAttribute(TmfXmlStrings.VALUE);
+            final String reference = element.getAttribute(TmfXmlStrings.SINCE);
+            final String value = element.getAttribute(TmfXmlStrings.VALUE);
             if (reference == null || value == null) {
                 throw new IllegalArgumentException();
             }

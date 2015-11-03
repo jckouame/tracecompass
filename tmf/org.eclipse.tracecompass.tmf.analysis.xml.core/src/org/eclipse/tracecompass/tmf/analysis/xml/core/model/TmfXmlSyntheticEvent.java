@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.tracecompass.common.core.NonNullUtils;
 import org.eclipse.tracecompass.statesystem.core.exceptions.AttributeNotFoundException;
@@ -144,9 +145,6 @@ public class TmfXmlSyntheticEvent implements ITmfSynEvent, Serializable {
         for (Entry<String, String> entry : ((XmlFilterStateProvider) fContainer).getDefinedFields().entrySet()) {
             ITmfEventField field;
             final String fieldName = entry.getValue();
-            if (fieldName == null) {
-                throw new IllegalArgumentException();
-            }
             ITmfStateValue value = TmfXmlReadWriteScenarioStatus.getInstance().getScenarioSpecialFieldValue(event, fContainer, fieldName, args);
             switch (value.getType()) {
             case STRING:
@@ -263,6 +261,7 @@ public class TmfXmlSyntheticEvent implements ITmfSynEvent, Serializable {
         return null;
     }
 
+    @NonNullByDefault({})
     private class TmfXmlEventType implements ITmfEventType, Serializable {
 
         /**
@@ -331,9 +330,15 @@ public class TmfXmlSyntheticEvent implements ITmfSynEvent, Serializable {
         }
 
         @Override
-        public Collection<String> getFieldNames() {
-            return (fRootField != null) ? fRootField.getFieldNames() : NonNullUtils.checkNotNull(Collections.EMPTY_SET);
+        public @Nullable Collection<String> getFieldNames() {
+            // TODO Auto-generated method stub
+            Collection<String> toReturn = (fRootField != null) ? fRootField.getFieldNames() : Collections.EMPTY_SET;
+            return toReturn;
         }
+//        @Override
+//        public Collection<String> getFieldNames() {
+//            return (fRootField != null) ? fRootField.getFieldNames() : Collections.EMPTY_SET;
+//        }
     }
 
     /**

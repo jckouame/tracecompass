@@ -205,7 +205,7 @@ public class TmfXmlFsm {
     public Pair<String, String> next(ITmfEvent event, Map<String, TmfXmlTransitionInput> transitionInputMap, String fFilterName, String scenarioName, String currState) {
         boolean matched = false;
         TmfXmlStateTransition stateTransition = null;
-        TmfXmlStateDefinition stateDefinition = fStatesMap.get(currState);
+        TmfXmlStateDefinition stateDefinition = NonNullUtils.checkNotNull(fStatesMap.get(currState));
         for (int i = 0; i < stateDefinition.getfTransitionList().size() && !matched; i++) {
             stateTransition = stateDefinition.getfTransitionList().get(i);
             String input = stateTransition.getfInput();
@@ -217,7 +217,7 @@ public class TmfXmlFsm {
                 if (andInputArray[j].startsWith(OTHER_STRING)) {
                     singleMatched = true;
                 } else {
-                    TmfXmlTransitionInput transitionInput = transitionInputMap.get(andInputArray[j]);
+                    TmfXmlTransitionInput transitionInput = NonNullUtils.checkNotNull(transitionInputMap.get(andInputArray[j]));
                     if (transitionInput.validate(event, fFilterName, scenarioName, currState)) {
                         singleMatched = true;
                     }
@@ -258,7 +258,7 @@ public class TmfXmlFsm {
         }
         for (String input : fPreconditions) {
             TmfXmlTransitionInput precondition = transitionInputs.get(input);
-            if (precondition.validate(event)) {
+            if (NonNullUtils.checkNotNull(precondition).validate(event)) {
                 return true;
             }
         }

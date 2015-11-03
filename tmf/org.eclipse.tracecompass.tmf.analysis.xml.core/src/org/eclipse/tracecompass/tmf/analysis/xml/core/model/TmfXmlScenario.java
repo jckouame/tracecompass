@@ -1,6 +1,7 @@
 package org.eclipse.tracecompass.tmf.analysis.xml.core.model;
 
 import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.tracecompass.common.core.NonNullUtils;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.model.readwrite.TmfXmlReadWriteScenarioStatus;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.model.readwrite.TmfXmlReadWriteScenarioStatus.ScenarioStatusType;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.module.IXmlStateSystemContainer;
@@ -107,7 +108,7 @@ public class TmfXmlScenario {
         fNextStateAutomatic = (fCurrState != out.getFirst() && !fCurrState.equals(fFsm.getFinalStateId())) ? true : false;
         fCurrState = out.getFirst();
         TmfXmlReadWriteScenarioStatus.updateScenario(fCurrEvent, fContainer, fFilterHandlerName, fScenarioName, fCurrState, fStatus);
-        if (fFsm.getStatesMap().get(fCurrState).isfAutomatic() && fNextStateAutomatic) {
+        if (NonNullUtils.checkNotNull(fFsm.getStatesMap().get(fCurrState)).isfAutomatic() && fNextStateAutomatic) {
             fNextStateAutomatic = false;
             handleEvent(event);
         }

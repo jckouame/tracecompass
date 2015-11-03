@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.tracecompass.common.core.NonNullUtils;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.module.IXmlStateSystemContainer;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.stateprovider.TmfXmlStrings;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
@@ -121,7 +122,7 @@ public class TmfXmlFilterEventHandler {
             if (!fActiveFsmList.contains(fsm)) {
                 fActiveFsmList.add(fsm);
             }
-            fsm.createScenario(parentFsmId, event, this);
+            NonNullUtils.checkNotNull(fsm).createScenario(parentFsmId, event, this);
         }
     }
 

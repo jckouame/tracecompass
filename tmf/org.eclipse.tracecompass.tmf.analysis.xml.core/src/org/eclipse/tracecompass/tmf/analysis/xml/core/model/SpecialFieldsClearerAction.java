@@ -29,9 +29,6 @@ public class SpecialFieldsClearerAction implements ISingleAction {
         XmlFilterStateProvider provider = (XmlFilterStateProvider) fParent;
         for (Entry<String, String> entry : provider.getDefinedFields().entrySet()) {
             final String value = entry.getValue();
-            if (value == null) {
-                throw new IllegalArgumentException();
-            }
             TmfXmlReadWriteScenarioStatus.clearSpecialFields(event, fParent, value, args);
         }
     }

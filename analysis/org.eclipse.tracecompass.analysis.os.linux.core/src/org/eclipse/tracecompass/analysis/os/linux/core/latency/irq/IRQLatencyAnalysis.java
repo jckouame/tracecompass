@@ -10,6 +10,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.tracecompass.analysis.os.linux.core.latency.irq.XmlIrqUtils.TYPE;
 import org.eclipse.tracecompass.analysis.timing.core.segmentstore.AbstractSegmentStoreAnalysisModule;
 import org.eclipse.tracecompass.analysis.timing.core.segmentstore.IAnalysisProgressListener;
@@ -17,7 +18,6 @@ import org.eclipse.tracecompass.common.core.NonNullUtils;
 import org.eclipse.tracecompass.segmentstore.core.ISegment;
 import org.eclipse.tracecompass.segmentstore.core.ISegmentStore;
 import org.eclipse.tracecompass.segmentstore.core.treemap.TreeMapStore;
-import org.eclipse.tracecompass.statesystem.core.ITmfStateSystem;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.model.TmfXmlSyntheticEvent;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.stateprovider.XmlPatternStateSystemModule;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
@@ -57,7 +57,7 @@ public class IRQLatencyAnalysis extends AbstractSegmentStoreAnalysisModule {
     }
 
     @Override
-    protected AbstractSegmentStoreAnalysisRequest createAnalysisRequest(ISegmentStore<ISegment> irqStore) {
+    protected AbstractSegmentStoreAnalysisRequest createAnalysisRequest(ISegmentStore<@NonNull ISegment> irqStore) {
         return new IRQLatencyAnalysisRequest(irqStore);
     }
 
@@ -73,7 +73,7 @@ public class IRQLatencyAnalysis extends AbstractSegmentStoreAnalysisModule {
             /* Attempt to read the existing file */
             try (ObjectInputStream ois = new ObjectInputStream(Files.newInputStream(file))) {
                 Object[] segmentArray = readObject(ois);
-                final ISegmentStore<ISegment> store = new TreeMapStore<>();
+                final ISegmentStore<@NonNull ISegment> store = new TreeMapStore<>();
                 for (Object element : segmentArray) {
                     if (element instanceof ISegment) {
                         ISegment segment = (ISegment) element;
@@ -97,7 +97,7 @@ public class IRQLatencyAnalysis extends AbstractSegmentStoreAnalysisModule {
             }
         }
 
-        ISegmentStore<ISegment> irqs = new TreeMapStore<>();
+        ISegmentStore<@NonNull ISegment> irqs = new TreeMapStore<>();
 
         computeEntries(trace, irqs);
 
@@ -118,14 +118,9 @@ public class IRQLatencyAnalysis extends AbstractSegmentStoreAnalysisModule {
         return true;
     }
 
-    private static void computeEntries(ITmfTrace trace, ISegmentStore<ISegment> IRQs) {
+    private static void computeEntries(ITmfTrace trace, ISegmentStore<@NonNull ISegment> IRQs) {
         for (XmlPatternStateSystemModule module : TmfTraceUtils.getAnalysisModulesOfClass(NonNullUtils.checkNotNull(trace), XmlPatternStateSystemModule.class)) {
             module.waitForCompletion();
-            for (ITmfStateSystem ssq : module.getStateSystems()) {
-                if (ssq == null) {
-                    return;
-                }
-            }
             for (ITmfEvent event : module.getSyntheticEvents()) {
                 if (XmlIrqUtils.validateEvent(event, TmfTimestamp.BIG_BANG, TmfTimestamp.BIG_CRUNCH)) {
                     if (event.getName().startsWith(XmlIrqUtils.SOFT_IRQ_PREFIX)) {
@@ -142,7 +137,7 @@ public class IRQLatencyAnalysis extends AbstractSegmentStoreAnalysisModule {
 
     private static class IRQLatencyAnalysisRequest extends AbstractSegmentStoreAnalysisRequest {
 
-        public IRQLatencyAnalysisRequest(ISegmentStore<ISegment> irqs) {
+        public IRQLatencyAnalysisRequest(ISegmentStore<@NonNull ISegment> irqs) {
             super(irqs);
         }
 

@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.tracecompass.common.core.NonNullUtils;
 import org.eclipse.tracecompass.statesystem.core.exceptions.AttributeNotFoundException;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.module.IXmlStateSystemContainer;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.module.XmlUtils;
@@ -41,9 +42,9 @@ public class TmfXmlTransitionInput {
         }
         fId = id;
 
-        List<Element> childElements = XmlUtils.getChildElements(node);
+        List<@Nullable Element> childElements = XmlUtils.getChildElements(node);
         Node child = childElements.get(0);
-        String childName = child.getNodeName();
+        String childName = NonNullUtils.checkNotNull(child).getNodeName();
         switch (childName) {
         case TmfXmlStrings.EVENT:
             fTransitionCondition = new EventTransition(modelFactory, (Element) child, fParent);

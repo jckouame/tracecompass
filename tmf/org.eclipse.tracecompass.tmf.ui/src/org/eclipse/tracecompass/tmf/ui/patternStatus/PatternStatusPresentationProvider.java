@@ -8,6 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.tracecompass.statesystem.core.ITmfStateSystem;
 import org.eclipse.tracecompass.statesystem.core.exceptions.AttributeNotFoundException;
@@ -42,7 +43,7 @@ public class PatternStatusPresentationProvider extends TimeGraphPresentationProv
      * Maps the value of an event with the corresponding index in the
      * stateValues list
      */
-    private static Map<String, Integer> stateIndex = new HashMap<>();
+    private static @NonNull Map<String, Integer> stateIndex = new HashMap<>();
 
     /**
      *
@@ -175,7 +176,7 @@ public class PatternStatusPresentationProvider extends TimeGraphPresentationProv
     /**
      * @return
      */
-    public static Map<String, Integer> getStateIndex() {
+    public static @NonNull Map<String, Integer> getStateIndex() {
         return stateIndex;
     }
 

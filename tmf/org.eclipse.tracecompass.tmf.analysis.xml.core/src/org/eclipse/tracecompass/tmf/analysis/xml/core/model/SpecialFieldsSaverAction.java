@@ -46,7 +46,7 @@ public class SpecialFieldsSaverAction implements ISingleAction {
                         stateValue = TmfStateValue.newValueDouble(((Double) field).doubleValue());
                     }
                     final String name = entry.getValue();
-                    if (name == null || stateValue == null) {
+                    if (stateValue == null) {
                         throw new IllegalArgumentException();
                     }
                     TmfXmlReadWriteScenarioStatus.saveSpecialFields(event, fParent, name, stateValue, arg);

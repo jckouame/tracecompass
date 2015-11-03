@@ -29,7 +29,6 @@ import org.eclipse.tracecompass.analysis.os.linux.core.latency.irq.XmlIrqUtils.S
 import org.eclipse.tracecompass.analysis.os.linux.core.latency.irq.XmlIrqUtils.TYPE;
 import org.eclipse.tracecompass.analysis.os.linux.ui.viewers.AbstractTmfLatencySegmentTreeViewer;
 import org.eclipse.tracecompass.common.core.NonNullUtils;
-import org.eclipse.tracecompass.statesystem.core.ITmfStateSystem;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.model.TmfXmlSyntheticEvent;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.stateprovider.XmlPatternStateSystemModule;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
@@ -105,11 +104,6 @@ public class XMLIrqAverageLatencyViewer extends AbstractTmfLatencySegmentTreeVie
 
         for (XmlPatternStateSystemModule module : TmfTraceUtils.getAnalysisModulesOfClass(NonNullUtils.checkNotNull(trace), XmlPatternStateSystemModule.class)) {
             module.waitForCompletion();
-            for (ITmfStateSystem ssq : module.getStateSystems()) {
-                if (ssq == null) {
-                    return null;
-                }
-            }
             for (ITmfEvent event : module.getSyntheticEvents()) {
                 if (XmlIrqUtils.validateEvent(event, start, end)) {
                     final TmfXmlSyntheticEvent synEvent = (TmfXmlSyntheticEvent) event;

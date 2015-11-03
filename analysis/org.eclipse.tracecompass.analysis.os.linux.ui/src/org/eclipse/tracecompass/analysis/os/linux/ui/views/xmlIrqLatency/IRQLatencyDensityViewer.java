@@ -68,13 +68,14 @@ public class IRQLatencyDensityViewer extends AbstractDensityViewer {
                 if (xS.length >= 2) {
                     delta = (xS[1] - xS[0]) / 2;
                 }
+                StringBuffer buffer = new StringBuffer();
+                if (tooltipIndex >= 0) {
                 long x1 = Math.round(Math.max(0, xS[tooltipIndex] - delta));
                 long x2 = Math.round(Math.max(0, xS[tooltipIndex] + delta));
                 long y = Math.round(fYOrigSeriesTots[tooltipIndex] - 1);
                 long yIRQ = Math.round(fIRQSeries.getYSeries()[tooltipIndex] - 1);
                 long ySoftIRQ = Math.round(fSoftIRQSeries.getYSeries()[tooltipIndex] - 1);
 
-                StringBuffer buffer = new StringBuffer();
                 buffer.append("Duration: ["); //$NON-NLS-1$
                 buffer.append(x1);
                 buffer.append(", "); //$NON-NLS-1$
@@ -94,6 +95,7 @@ public class IRQLatencyDensityViewer extends AbstractDensityViewer {
                     buffer.append("\n"); //$NON-NLS-1$
                     buffer.append("Total Count: "); //$NON-NLS-1$
                     buffer.append(y);
+                }
                 }
                 return buffer.toString();
             }

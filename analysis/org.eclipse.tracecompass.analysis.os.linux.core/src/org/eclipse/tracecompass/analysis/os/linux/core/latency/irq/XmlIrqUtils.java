@@ -94,9 +94,11 @@ public class XmlIrqUtils {
      * @return True if the event is valid, false otherwise
      */
     public static boolean validateEvent(ITmfEvent event, ITmfTimestamp start, ITmfTimestamp end) {
+        ITmfTimestamp newStart = start.compareTo(end) <= 0 ? start : end;
+        ITmfTimestamp newEnd = end.compareTo(start) >= 0 ? end : start;
         if (event instanceof TmfXmlSyntheticEvent &&
-                event.getTimestamp().compareTo(start) >= 0 &&
-                ((TmfXmlSyntheticEvent) event).getTimestampEnd().compareTo(end) <= 0 &&
+                event.getTimestamp().compareTo(newStart) >= 0 &&
+                ((TmfXmlSyntheticEvent) event).getTimestampEnd().compareTo(newEnd) <= 0 &&
                 (NonNullUtils.nullToEmptyString(ITmfEventAspect.BaseAspects.EVENT_TYPE.resolve(event)).startsWith(SOFT_IRQ_PREFIX) ||
                         NonNullUtils.nullToEmptyString(ITmfEventAspect.BaseAspects.EVENT_TYPE.resolve(event)).startsWith(HARD_IRQ_PREFIX))) {
             return true;

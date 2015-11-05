@@ -208,7 +208,7 @@ public abstract class AbstractTmfLatencySegmentTreeViewer extends TmfViewer {
             clearAll();
             return;
         }
-        reloadContents(activeTrace, TmfTimestamp.BIG_BANG, TmfTimestamp.BIG_CRUNCH);
+        reloadContents(activeTrace, activeTrace.getStartTime(), activeTrace.getEndTime());
     }
 
     private void clearAll() {
@@ -252,7 +252,7 @@ public abstract class AbstractTmfLatencySegmentTreeViewer extends TmfViewer {
     public void traceSelected(TmfTraceSelectedSignal signal) {
         ITmfTrace trace = signal.getTrace();
         if (trace != null) {
-            reloadContents(trace, TmfTimestamp.BIG_BANG, TmfTimestamp.BIG_CRUNCH);
+            reloadContents(trace, trace.getStartTime(), trace.getEndTime());
         }
     }
 

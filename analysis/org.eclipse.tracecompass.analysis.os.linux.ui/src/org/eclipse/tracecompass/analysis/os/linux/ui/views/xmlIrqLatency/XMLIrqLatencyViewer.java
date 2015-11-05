@@ -397,7 +397,7 @@ public class XMLIrqLatencyViewer extends AbstractTmfLatencySegmentTreeViewer {
         IRQ hard = new IRQ(null, TYPE.IRQ);
         IRQ soft = new IRQ(null, TYPE.SOFTIRQ);
         for (XmlPatternStateSystemModule module : TmfTraceUtils.getAnalysisModulesOfClass(NonNullUtils.checkNotNull(trace), XmlPatternStateSystemModule.class)) {
-//            module.waitForCompletion();
+            module.waitForCompletion();
             for (ITmfEvent event : module.getSyntheticEvents()) {
                 if (XmlIrqUtils.validateEvent(event, start, end)) {
                     if (event.getName().startsWith(XmlIrqUtils.SOFT_IRQ_PREFIX)) {

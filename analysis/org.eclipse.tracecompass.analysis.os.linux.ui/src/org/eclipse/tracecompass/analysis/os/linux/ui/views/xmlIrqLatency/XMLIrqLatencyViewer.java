@@ -291,7 +291,7 @@ public class XMLIrqLatencyViewer extends AbstractTmfLatencySegmentTreeViewer {
 
     @Override
     protected void createColumns(TreeViewer viewer) {
-        createColumn(viewer, Messages.XMLIrqLatencyViewer_Interrupt, 200, new SegmentColumnLabelProvider() {
+        createColumn(viewer, Messages.XMLIrqLatencyViewer_Level, 200, new SegmentColumnLabelProvider() {
             @Override
             public String getTextForColumn(Object o) {
                 IRQ irq = (IRQ) o;
@@ -315,7 +315,7 @@ public class XMLIrqLatencyViewer extends AbstractTmfLatencySegmentTreeViewer {
             }
         });
 
-        createColumn(viewer, Messages.XMLIrqLatencyViewer_ElapsedTime, 300, new SegmentColumnLabelProvider() {
+        createColumn(viewer, Messages.XMLIrqLatencyViewer_Duration, 300, new SegmentColumnLabelProvider() {
             @Override
             public String getTextForColumn(Object o) {
                 IRQ irq = (IRQ) o;
@@ -397,7 +397,7 @@ public class XMLIrqLatencyViewer extends AbstractTmfLatencySegmentTreeViewer {
         IRQ hard = new IRQ(null, TYPE.IRQ);
         IRQ soft = new IRQ(null, TYPE.SOFTIRQ);
         for (XmlPatternStateSystemModule module : TmfTraceUtils.getAnalysisModulesOfClass(NonNullUtils.checkNotNull(trace), XmlPatternStateSystemModule.class)) {
-            module.waitForCompletion();
+//            module.waitForCompletion();
             for (ITmfEvent event : module.getSyntheticEvents()) {
                 if (XmlIrqUtils.validateEvent(event, start, end)) {
                     if (event.getName().startsWith(XmlIrqUtils.SOFT_IRQ_PREFIX)) {

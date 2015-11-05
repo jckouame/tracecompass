@@ -28,9 +28,9 @@ public class Messages extends NLS {
     public static String IRQLatencyDensityViewer_Show_IRQs;
     public static String IRQLatencyDensityViewer_Show_SoftIRQ;
     public static String IRQLatencyDensityViewer_SoftIRQ_Legend;
-    public static String XMLIrqLatencyViewer_ElapsedTime;
+    public static String XMLIrqLatencyViewer_Duration;
     public static String XMLIrqLatencyViewer_EndTime;
-    public static String XMLIrqLatencyViewer_Interrupt;
+    public static String XMLIrqLatencyViewer_Level;
     public static String XMLIrqLatencyViewer_NonApplicable;
     public static String XMLIrqLatencyViewer_Reset;
     public static String XMLIrqLatencyViewer_StartTime;

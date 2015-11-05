@@ -53,7 +53,7 @@ public class XMLIrqAverageLatencyViewer extends AbstractTmfLatencySegmentTreeVie
 
     @Override
     protected void createColumns(TreeViewer viewer) {
-        createColumn(viewer, Messages.XMLIrqAverageLatencyViewer_Interrupt, 200, new SegmentColumnLabelProvider() {
+        createColumn(viewer, Messages.XMLIrqAverageLatencyViewer_Level, 200, new SegmentColumnLabelProvider() {
             @Override
             public String getTextForColumn(Object o) {
                 IRQStatInfos irq = (IRQStatInfos) o;

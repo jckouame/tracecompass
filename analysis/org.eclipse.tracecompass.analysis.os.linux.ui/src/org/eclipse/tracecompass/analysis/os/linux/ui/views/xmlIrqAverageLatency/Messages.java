@@ -26,7 +26,7 @@ public class Messages extends NLS {
     public static String XMLIrqAverageLatencyViewer_Count;
     public static String XMLIrqAverageLatencyViewer_GoToMaxIRQ;
     public static String XMLIrqAverageLatencyViewer_GoToMinIRQ;
-    public static String XMLIrqAverageLatencyViewer_Interrupt;
+    public static String XMLIrqAverageLatencyViewer_Level;
     public static String XMLIrqAverageLatencyViewer_IRQ;
     public static String XMLIrqAverageLatencyViewer_Max;
     public static String XMLIrqAverageLatencyViewer_Min;

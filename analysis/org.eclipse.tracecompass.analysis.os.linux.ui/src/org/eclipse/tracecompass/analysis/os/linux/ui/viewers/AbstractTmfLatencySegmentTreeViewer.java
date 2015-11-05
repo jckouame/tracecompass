@@ -44,6 +44,7 @@ import org.eclipse.tracecompass.tmf.core.signal.TmfSignalHandler;
 import org.eclipse.tracecompass.tmf.core.signal.TmfTraceClosedSignal;
 import org.eclipse.tracecompass.tmf.core.signal.TmfTraceSelectedSignal;
 import org.eclipse.tracecompass.tmf.core.timestamp.ITmfTimestamp;
+import org.eclipse.tracecompass.tmf.core.timestamp.TmfTimeRange;
 import org.eclipse.tracecompass.tmf.core.timestamp.TmfTimestamp;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTraceManager;
@@ -102,7 +103,6 @@ public abstract class AbstractTmfLatencySegmentTreeViewer extends TmfViewer {
                 }
             }
         });
-        reloadContents();
 
         fTablePopupMenuManager = new MenuManager();
         fTablePopupMenuManager.setRemoveAllWhenShown(true);
@@ -201,16 +201,6 @@ public abstract class AbstractTmfLatencySegmentTreeViewer extends TmfViewer {
         col.setLabelProvider(provider);
     }
 
-    private void reloadContents() {
-        ITmfTrace activeTrace = TmfTraceManager.getInstance().getActiveTrace();
-        if (activeTrace == null) {
-            /* No active trace, clear the view */
-            clearAll();
-            return;
-        }
-        reloadContents(activeTrace, activeTrace.getStartTime(), activeTrace.getEndTime());
-    }
-
     private void clearAll() {
         fTreeViewer.setInput(null);
         refresh();
@@ -250,9 +240,10 @@ public abstract class AbstractTmfLatencySegmentTreeViewer extends TmfViewer {
      */
     @TmfSignalHandler
     public void traceSelected(TmfTraceSelectedSignal signal) {
+        TmfTimeRange traceRange = TmfTraceManager.getInstance().getCurrentTraceContext().getWindowRange();
         ITmfTrace trace = signal.getTrace();
         if (trace != null) {
-            reloadContents(trace, trace.getStartTime(), trace.getEndTime());
+            reloadContents(trace, traceRange.getStartTime(), traceRange.getEndTime());
         }
     }
 

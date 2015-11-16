@@ -10,11 +10,14 @@ import org.w3c.dom.Element;
  *
  */
 public class TmfXmlStateTransition {
-    private final String fInput;
+    private static final String REGEX = ":"; //$NON-NLS-1$
+    private final String[] fInput;
     private final String fNext;
-    private final String fAction;
+    private final String[] fAction;
     private final boolean fSpecialFieldsToBeSaved;
     private final boolean fSpecialFieldsToBeCleared;
+    private static final String SAVED_SPECIAL_FIELDS_ACTION_STRING = ISingleAction.SPECIAL_ACTION_PREFIX + ISingleAction.SAVE_SPECIAL_FIELD_STRING;
+    private static final String CLEAR_SPECIAL_FIELDS_ACTION_STRINGS = ISingleAction.SPECIAL_ACTION_PREFIX + ISingleAction.CLEAR_SPECIAL_FIELD_STRING;
 
     /**
      * @param modelFactory
@@ -29,7 +32,11 @@ public class TmfXmlStateTransition {
         if (input == null) {
             throw new IllegalArgumentException();
         }
-        fInput = input;
+        String[] InputArray = input.split(REGEX);
+        if (InputArray == null) {
+            throw new IllegalArgumentException();
+        }
+        fInput = InputArray;
         String next = node.getAttribute(TmfXmlStrings.NEXT);
         if (next == null) {
             throw new IllegalArgumentException();
@@ -39,15 +46,39 @@ public class TmfXmlStateTransition {
         if (action == null) {
             throw new IllegalArgumentException();
         }
-        fAction = action;
+        String[] actionArray = action.split(REGEX);
+        if (actionArray == null) {
+            throw new IllegalArgumentException();
+        }
+//        fAction = actionArray;
         fSpecialFieldsToBeSaved = (node.getAttribute(TmfXmlStrings.SAVE_SPECIAL_FIELDS).equals(TmfXmlStrings.EMPTY_STRING) ? false : Boolean.parseBoolean(node.getAttribute(TmfXmlStrings.SAVE_SPECIAL_FIELDS)));
         fSpecialFieldsToBeCleared = (node.getAttribute(TmfXmlStrings.CLEAR_SPECIAL_FIELDS).equals(TmfXmlStrings.EMPTY_STRING) ? false : Boolean.parseBoolean(node.getAttribute(TmfXmlStrings.CLEAR_SPECIAL_FIELDS)));
+        int nbSpecialAction = 0;
+        if (fSpecialFieldsToBeSaved) {
+            nbSpecialAction++;
+        }
+        if (fSpecialFieldsToBeCleared) {
+            nbSpecialAction++;
+        }
+        fAction = new String[actionArray.length + nbSpecialAction];
+        int index = 0;
+        if (fSpecialFieldsToBeSaved) {
+            fAction[index] = SAVED_SPECIAL_FIELDS_ACTION_STRING;
+            index++;
+        }
+        for (int i = 0; i < actionArray.length; i++) {
+            fAction[index] = actionArray[i];
+            index++;
+        }
+        if (fSpecialFieldsToBeCleared) {
+            fAction[index] = CLEAR_SPECIAL_FIELDS_ACTION_STRINGS;
+        }
     }
 
     /**
      * @return the input of this transition
      */
-    public String getfInput() {
+    public String[] getfInput() {
         return fInput;
     }
 
@@ -61,7 +92,7 @@ public class TmfXmlStateTransition {
     /**
      * @return the action to execute if the input is validate
      */
-    public String getfAction() {
+    public String[] getfAction() {
         return fAction;
     }
 

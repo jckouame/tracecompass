@@ -12,7 +12,7 @@ public interface ISingleAction {
     /**
     *
     */
-   public final static String ACTION_SEPARATOR = ":"; //$NON-NLS-1$
+//   public final static String ACTION_SEPARATOR = ":"; //$NON-NLS-1$
    /**
     *
     */

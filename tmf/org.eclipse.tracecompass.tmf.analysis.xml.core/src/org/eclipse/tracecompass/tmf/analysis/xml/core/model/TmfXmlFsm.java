@@ -38,9 +38,6 @@ public class TmfXmlFsm {
     private final List<TmfXmlScenario> fNewScenariosList = new ArrayList<>();
     private final List<String> fPreconditions = new ArrayList<>();
     private int fScenarioCount;
-    private static final String REGEX = ":"; //$NON-NLS-1$
-    private static final String SAVED_SPECIAL_FIELDS_ACTION_STRING = ISingleAction.SPECIAL_ACTION_PREFIX + ISingleAction.SAVE_SPECIAL_FIELD_STRING + ISingleAction.ACTION_SEPARATOR;
-    private static final String CLEAR_SPECIAL_FIELDS_ACTION_STRINGS = ISingleAction.ACTION_SEPARATOR + ISingleAction.SPECIAL_ACTION_PREFIX + ISingleAction.CLEAR_SPECIAL_FIELD_STRING;
     private static final String OTHER_STRING = TmfXmlStrings.CONSTANT_PREFIX + TmfXmlStrings.OTHER;
     private static final String SEPARATOR = "#"; //$NON-NLS-1$
 
@@ -202,19 +199,18 @@ public class TmfXmlFsm {
      * @return A pair containing the next state of the state machine and the
      *         action to execute
      */
-    public Pair<String, String> next(ITmfEvent event, Map<String, TmfXmlTransitionInput> transitionInputMap, String fFilterName, String scenarioName, String currState) {
+    public Pair<String, String[]> next(ITmfEvent event, Map<String, TmfXmlTransitionInput> transitionInputMap, String fFilterName, String scenarioName, String currState) {
         boolean matched = false;
         TmfXmlStateTransition stateTransition = null;
         TmfXmlStateDefinition stateDefinition = NonNullUtils.checkNotNull(fStatesMap.get(currState));
         for (int i = 0; i < stateDefinition.getfTransitionList().size() && !matched; i++) {
             stateTransition = stateDefinition.getfTransitionList().get(i);
-            String input = stateTransition.getfInput();
-            String[] andInputArray = input.split(REGEX);
+            String[] andInputArray = stateTransition.getfInput();
 
             boolean inputMatched = true;
             for (int j = 0; j < andInputArray.length && inputMatched; j++) {
                 boolean singleMatched = false;
-                if (andInputArray[j].startsWith(OTHER_STRING)) {
+                if (andInputArray[j].equals(OTHER_STRING)) {
                     singleMatched = true;
                 } else {
                     TmfXmlTransitionInput transitionInput = NonNullUtils.checkNotNull(transitionInputMap.get(andInputArray[j]));
@@ -229,20 +225,14 @@ public class TmfXmlFsm {
         return getNextStep(stateTransition, matched, currState);
     }
 
-    private static Pair<String, String> getNextStep(@Nullable TmfXmlStateTransition stateTransition, boolean matched, String currState) {
+    private static Pair<String, String[]> getNextStep(@Nullable TmfXmlStateTransition stateTransition, boolean matched, String currState) {
         String nextState = currState;
-        StringBuilder action = new StringBuilder();
+        String[] actions = new String[]{};
         if (matched && stateTransition != null) {
             nextState = stateTransition.getfNext();
-            if (stateTransition.isSpecialFieldsTobeSaved()) {
-                action.append(SAVED_SPECIAL_FIELDS_ACTION_STRING);
-            }
-            action.append(stateTransition.getfAction());
-            if (stateTransition.isSpecialFieldsToBeCleared()) {
-                action.append(CLEAR_SPECIAL_FIELDS_ACTION_STRINGS);
-            }
+            actions  = stateTransition.getfAction();
         }
-        return new Pair<>(nextState, NonNullUtils.nullToEmptyString(action.toString()));
+        return new Pair<>(nextState, actions);
     }
 
     /**
@@ -272,6 +262,9 @@ public class TmfXmlFsm {
      *            The transitions of the pattern
      */
     public void handleEvent(ITmfEvent event, Map<String, TmfXmlTransitionInput> transitionMap) {
+        if (!validatePreconditions(event, transitionMap)) {
+            return;
+        }
         for (TmfXmlScenario scenario : fNewScenariosList) {
             fScenarioList.add(scenario);
         }
@@ -284,7 +277,7 @@ public class TmfXmlFsm {
                 removed = true;
             }
             if (!removed) {
-                handleScenario(scenario, event, transitionMap);
+                handleScenario(scenario, event);
             }
         }
         fNewScenariosList.clear();
@@ -301,12 +294,10 @@ public class TmfXmlFsm {
         }
     }
 
-    private void handleScenario(TmfXmlScenario scenario, ITmfEvent event, Map<String, TmfXmlTransitionInput> transitionInputMap) {
-        if (validatePreconditions(event, transitionInputMap)) {
+    private static void handleScenario(TmfXmlScenario scenario, ITmfEvent event) {
             if (scenario.getStatus() == ScenarioStatusType.WAITING_START || scenario.getStatus() == ScenarioStatusType.IN_PROGRESS) {
                 scenario.handleEvent(event);
             }
-        }
     }
 
     /**

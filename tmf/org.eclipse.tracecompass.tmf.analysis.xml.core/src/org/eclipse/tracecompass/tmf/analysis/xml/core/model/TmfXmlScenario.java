@@ -80,14 +80,12 @@ public class TmfXmlScenario {
             TmfXmlReadWriteScenarioStatus.updateScenarioPatternDiscoveryStartTime(event, fContainer, fFilterHandlerName, fScenarioName);
         }
         fCurrEvent = event;
-        Pair<String, String> out = fFsm.next(event, fFilterHandler.getTransitionInputMap(), fFilterHandlerName, fScenarioName, fCurrState);
-        if (!out.getSecond().isEmpty()) {
-            String[] actionIds = out.getSecond().split(ISingleAction.ACTION_SEPARATOR);
-            for (int i = 0; i < actionIds.length; i++) {
-                ISingleAction action = fFilterHandler.getActionMap().get(actionIds[i]);
-                if (action != null) {
-                    action.execute(event, fFilterHandlerName, fScenarioName, fCurrState, fFsm.getId());
-                }
+        Pair<String, String[]> out = fFsm.next(event, fFilterHandler.getTransitionInputMap(), fFilterHandlerName, fScenarioName, fCurrState);
+        final String[] actions = out.getSecond();
+        for (int i = 0; i < actions.length; i++) {
+            ISingleAction action = fFilterHandler.getActionMap().get(actions[i]);
+            if (action != null) {
+                action.execute(event, fFilterHandlerName, fScenarioName, fCurrState, fFsm.getId());
             }
         }
 

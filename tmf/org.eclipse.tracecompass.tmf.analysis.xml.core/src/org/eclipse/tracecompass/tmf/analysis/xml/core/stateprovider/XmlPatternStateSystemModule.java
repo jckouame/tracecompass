@@ -45,7 +45,7 @@ public class XmlPatternStateSystemModule extends TmfStateSystemAnalysisModule {
 
     @Override
     protected StateSystemBackendType getBackendType() {
-        return StateSystemBackendType.FULL;
+        return StateSystemBackendType.INMEM;
     }
 
     @Override

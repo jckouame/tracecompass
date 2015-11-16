@@ -16,6 +16,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.tracecompass.common.core.NonNullUtils;
 import org.eclipse.tracecompass.internal.tmf.analysis.xml.core.Activator;
 import org.eclipse.tracecompass.statesystem.core.ITmfStateSystem;
 import org.eclipse.tracecompass.statesystem.core.ITmfStateSystemBuilder;
@@ -59,6 +60,8 @@ public abstract class TmfXmlStateAttribute implements ITmfXmlStateAttribute {
 
     /** Attribute's name */
     private final @Nullable String fName;
+
+    private int fArgumentIndex = -1;
 
     /** List of attributes for a query */
     private final List<ITmfXmlStateAttribute> fQueryList = new LinkedList<>();
@@ -120,6 +123,13 @@ public abstract class TmfXmlStateAttribute implements ITmfXmlStateAttribute {
         default:
             throw new IllegalArgumentException("TmfXmlStateAttribute constructor: The XML element is not of the right type"); //$NON-NLS-1$
         }
+        int index = -1;
+        if (fName != null) {
+            if (fName.startsWith(TmfXmlStrings.CONSTANT_PREFIX) && NonNullUtils.checkNotNull(fName).substring(1).startsWith(TmfXmlStrings.ARG)) {
+                index = Integer.parseInt(NonNullUtils.checkNotNull(fName).split(REGEX)[1]);
+            }
+        }
+        fArgumentIndex = index;
     }
 
     /**
@@ -355,12 +365,11 @@ public abstract class TmfXmlStateAttribute implements ITmfXmlStateAttribute {
         ITmfStateSystem ss = getStateSystem();
 
         String name = fName;
-        if (name != null && name.startsWith(TmfXmlStrings.CONSTANT_PREFIX) && name.substring(1).startsWith(TmfXmlStrings.ARG)) {
-            int index = Integer.parseInt(name.split(REGEX)[1]);
-            if (index < arg.length) {
-                name = arg[index];
+        if (fArgumentIndex >= 0) {
+            if (fArgumentIndex < arg.length) {
+                name = arg[fArgumentIndex];
             } else {
-                throw new IllegalArgumentException("Invalid argument : argument " + index + "does not exist. The maximum number possible is" + arg.length); //$NON-NLS-1$ //$NON-NLS-2$
+                throw new IllegalArgumentException("Invalid argument : argument " + fArgumentIndex + "does not exist. The maximum number possible is" + arg.length); //$NON-NLS-1$ //$NON-NLS-2$
             }
         }
 

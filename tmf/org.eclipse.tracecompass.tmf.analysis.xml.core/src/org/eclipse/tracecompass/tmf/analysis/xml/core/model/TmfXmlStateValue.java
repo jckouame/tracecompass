@@ -230,6 +230,25 @@ public abstract class TmfXmlStateValue implements ITmfXmlStateValue {
     }
 
     /**
+     * Get the current {@link ITmfStateValue} of this state value for an event.
+     * It does not increment the value and does not any other processing of the
+     * value.
+     *
+     * @param event
+     *            The current event, or <code>null</code> if no event available.
+     * @param args
+     *            The arguments used to get the value
+     * @return the {@link ITmfStateValue}
+     * @throws AttributeNotFoundException
+     *             May be thrown by the state system during the query
+     * @since 2.0
+     */
+    @Override
+    public ITmfStateValue getValue(@Nullable ITmfEvent event, String scenarioName, String activeState) throws AttributeNotFoundException {
+        return fStateValue.getValue(event, scenarioName, activeState);
+    }
+
+    /**
      * Get the value of the event field that is the path of this state value
      *
      * @param event
@@ -402,6 +421,38 @@ public abstract class TmfXmlStateValue implements ITmfXmlStateValue {
         fStateValue.handleEvent(event, quark, ts);
     }
 
+    /**
+     * Handles an event, by setting the value of the attribute described by the
+     * state attribute path in the state system.
+     *
+     * @param event
+     *            The event to process
+     * @param args
+     *            The arguments used to handle the event
+     * @throws AttributeNotFoundException
+     *             Pass through the exception it received
+     * @throws TimeRangeException
+     *             Pass through the exception it received
+     * @throws StateValueTypeException
+     *             Pass through the exception it received
+     * @since 2.0
+     */
+    @Override
+    public void handleEvent(@NonNull ITmfEvent event, String scenarioName, String activeState) throws AttributeNotFoundException, StateValueTypeException, TimeRangeException {
+        int quark = IXmlStateSystemContainer.ROOT_QUARK;
+
+        for (ITmfXmlStateAttribute attribute : fPath) {
+            quark = attribute.getAttributeQuark(event, quark, scenarioName, activeState);
+            /* the query is not valid, we stop the state change */
+            if (quark == IXmlStateSystemContainer.ERROR_QUARK) {
+                throw new AttributeNotFoundException("Not found XML attribute " + attribute); //$NON-NLS-1$
+            }
+        }
+
+        long ts = event.getTimestamp().getValue();
+        fStateValue.handleEvent(event, quark, ts);
+    }
+
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder("TmfXmlStateValue: "); //$NON-NLS-1$
@@ -432,6 +483,24 @@ public abstract class TmfXmlStateValue implements ITmfXmlStateValue {
          *             Pass through the exception it received
          */
         public abstract ITmfStateValue getValue(@Nullable ITmfEvent event) throws AttributeNotFoundException;
+
+        /**
+         * Get the value associated with this state value.
+         *
+         * @param event
+         *            The event which can be used to retrieve the value if
+         *            necessary. The event can be <code>null</code> if no event
+         *            is required.
+         * @param scenarioName
+         *            The active scenario name
+         * @param activeState
+         *            The active state
+         * @return The state value corresponding to this XML state value
+         * @throws AttributeNotFoundException
+         *             Pass through the exception it received
+         * @since 2.0
+         */
+        public abstract ITmfStateValue getValue(@Nullable ITmfEvent event, String scenarioName, String activeState) throws AttributeNotFoundException;
 
         /**
          * Do something with the state value, possibly using an event
@@ -505,6 +574,11 @@ public abstract class TmfXmlStateValue implements ITmfXmlStateValue {
 
         @Override
         public ITmfStateValue getValue(@Nullable ITmfEvent event) throws AttributeNotFoundException {
+            return TmfStateValue.nullValue();
+        }
+
+        @Override
+        public ITmfStateValue getValue(@Nullable ITmfEvent event, String scenarioName, String activeState) throws AttributeNotFoundException {
             return TmfStateValue.nullValue();
         }
 

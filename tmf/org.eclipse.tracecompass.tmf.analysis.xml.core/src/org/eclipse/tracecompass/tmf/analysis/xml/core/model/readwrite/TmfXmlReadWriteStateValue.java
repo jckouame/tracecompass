@@ -15,6 +15,7 @@ package org.eclipse.tracecompass.tmf.analysis.xml.core.model.readwrite;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.tracecompass.internal.tmf.analysis.xml.core.Activator;
 import org.eclipse.tracecompass.statesystem.core.ITmfStateSystem;
@@ -244,6 +245,11 @@ public class TmfXmlReadWriteStateValue extends TmfXmlStateValue {
         }
 
         @Override
+        public ITmfStateValue getValue(@Nullable ITmfEvent event, String scenarioName, String activeState) {
+            return fValue;
+        }
+
+        @Override
         public void incrementValue(ITmfEvent event, int quark, long timestamp) throws StateValueTypeException, TimeRangeException, AttributeNotFoundException {
             ITmfStateSystem ss = getStateSystem();
             if (ss == null) {
@@ -275,6 +281,14 @@ public class TmfXmlReadWriteStateValue extends TmfXmlStateValue {
 
         @Override
         public ITmfStateValue getValue(@Nullable ITmfEvent event) {
+            if (event == null) {
+                Activator.logWarning("XML State value: requested an event field, but event is null"); //$NON-NLS-1$
+                return TmfStateValue.nullValue();
+            }
+            return getEventFieldValue(event, fFieldName);
+        }
+        @Override
+        public ITmfStateValue getValue(@Nullable ITmfEvent event, String scenarioName, String activeState) {
             if (event == null) {
                 Activator.logWarning("XML State value: requested an event field, but event is null"); //$NON-NLS-1$
                 return TmfStateValue.nullValue();
@@ -316,10 +330,18 @@ public class TmfXmlReadWriteStateValue extends TmfXmlStateValue {
         }
 
         @Override
+        public @NonNull ITmfStateValue getValue(@Nullable ITmfEvent event, String scenarioName, String activeState) throws AttributeNotFoundException {
+            if (event == null) {
+                Activator.logWarning("XML State value: request event name, but event is null"); //$NON-NLS-1$
+                return TmfStateValue.nullValue();
+            }
+            return TmfStateValue.newValueString(event.getName());
+        }
+
+        @Override
         public String toString() {
             return "Event name"; //$NON-NLS-1$
         }
-
     }
 
     /* The state value deletes an attribute */
@@ -327,6 +349,11 @@ public class TmfXmlReadWriteStateValue extends TmfXmlStateValue {
 
         @Override
         public ITmfStateValue getValue(@Nullable ITmfEvent event) throws AttributeNotFoundException {
+            return TmfStateValue.nullValue();
+        }
+
+        @Override
+        public @NonNull ITmfStateValue getValue(@Nullable ITmfEvent event, String scenarioName, String activeState) throws AttributeNotFoundException {
             return TmfStateValue.nullValue();
         }
 
@@ -367,6 +394,36 @@ public class TmfXmlReadWriteStateValue extends TmfXmlStateValue {
 
             for (ITmfXmlStateAttribute attribute : fQueryValue) {
                 quarkQuery = attribute.getAttributeQuark(event, quarkQuery);
+                if (quarkQuery == IXmlStateSystemContainer.ERROR_QUARK) {
+                    /* the query is not valid, we stop the state change */
+                    break;
+                }
+            }
+            /*
+             * the query can fail : for example, if a value is requested but has
+             * not been set yet
+             */
+            if (quarkQuery != IXmlStateSystemContainer.ERROR_QUARK) {
+                value = ss.queryOngoingState(quarkQuery);
+                if (value == null) {
+                    throw new IllegalStateException();
+                }
+            }
+            return value;
+        }
+
+        @Override
+        public ITmfStateValue getValue(@Nullable ITmfEvent event, String scenarioName, String activeState) throws AttributeNotFoundException {
+            /* Query the state system for the value */
+            ITmfStateValue value = TmfStateValue.nullValue();
+            int quarkQuery = IXmlStateSystemContainer.ROOT_QUARK;
+            ITmfStateSystem ss = getStateSystem();
+            if (ss == null) {
+                throw new IllegalStateException(ILLEGAL_STATE_EXCEPTION_MESSAGE);
+            }
+
+            for (ITmfXmlStateAttribute attribute : fQueryValue) {
+                quarkQuery = attribute.getAttributeQuark(event, quarkQuery, scenarioName, activeState);
                 if (quarkQuery == IXmlStateSystemContainer.ERROR_QUARK) {
                     /* the query is not valid, we stop the state change */
                     break;

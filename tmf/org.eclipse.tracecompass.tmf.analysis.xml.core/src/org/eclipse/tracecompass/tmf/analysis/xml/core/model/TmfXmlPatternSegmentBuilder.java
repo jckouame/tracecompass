@@ -111,6 +111,35 @@ public class TmfXmlPatternSegmentBuilder {
     }
 
     /**
+     * Generate a pattern segment
+     *
+     * @param event
+     *            The current event
+     * @param start
+     *            Start time of the pattern segment to generate
+     * @param end
+     *            End time of the pattern segment to generate
+     * @param scenarioName
+     *            The active scenario name
+     * @param activeState
+     *            The active state
+     * @return The pattern segment generated
+     */
+    public TmfXmlPatternSegment generatePatternSegment(ITmfEvent event, ITmfTimestamp start, ITmfTimestamp end, String scenarioName, String activeState) {
+        int scale = event.getTimestamp().getScale();
+        long startValue = start.normalize(0, ITmfTimestamp.NANOSECOND_SCALE).getValue();
+        long endValue = end.normalize(0, ITmfTimestamp.NANOSECOND_SCALE).getValue();
+        String segmentName = getPatternSegmentName(event, scenarioName, activeState);
+        Map<String, ITmfStateValue> fields = new HashMap<>();
+        setPatternSegmentContent(event, start, end, fields, scenarioName, activeState);
+        TmfXmlPatternSegment segment = new TmfXmlPatternSegment(startValue, endValue, scale, segmentName, fields);
+        if (fContainer instanceof XmlPatternStateProvider) {
+            ((XmlPatternStateProvider) fContainer).getListener().onNewSegment(segment);
+        }
+        return segment;
+    }
+
+    /**
      * Get the pattern segment name
      *
      * @param event
@@ -119,6 +148,21 @@ public class TmfXmlPatternSegmentBuilder {
      */
     private String getPatternSegmentName(ITmfEvent event) {
         return fSegmentType.getName(event);
+    }
+
+    /**
+     * Get the pattern segment name
+     *
+     * @param event
+     *            The active event
+     * @param scenarioName
+     *            The active scenario name
+     * @param activeState
+     *            The active state
+     * @return The name of the segment
+     */
+    private String getPatternSegmentName(ITmfEvent event, String scenarioName, String activeState) {
+        return fSegmentType.getName(event, scenarioName, activeState);
     }
 
     /**
@@ -140,6 +184,29 @@ public class TmfXmlPatternSegmentBuilder {
         }
     }
 
+    /**
+     * Compute all the fields and their values for this pattern segment. The
+     * fields could be constant values or values queried from the state system.
+     *
+     * @param event
+     *            The current event
+     * @param start
+     *            The start timestamp of this segment
+     * @param end
+     *            The end timestamp of this segment
+     * @param fields
+     *            The map that will contained all the fields
+     * @param scenarioName
+     *            The active scenario name
+     * @param activeState
+     *            The active state
+     */
+    private void setPatternSegmentContent(ITmfEvent event, ITmfTimestamp start, ITmfTimestamp end, Map<String, ITmfStateValue> fields, String scenarioName, String activeState) {
+        for (TmfXmlPatternSegmentField field : fFields) {
+            fields.put(field.getName(), field.getValue(event, scenarioName, activeState));
+        }
+    }
+
     private static ITmfStateValue getStateValueFromConstant(String constantValue, String type) {
         switch (type) {
         case TmfXmlStrings.TYPE_INT:
@@ -158,6 +225,33 @@ public class TmfXmlPatternSegmentBuilder {
     private static void getNameFromXmlStateValue(ITmfEvent event, StringBuilder builder, ITmfXmlStateValue xmlStateValue) {
         try {
             ITmfStateValue value = xmlStateValue.getValue(event);
+            switch (value.getType()) {
+            case DOUBLE:
+                builder.append(value.unboxDouble());
+                break;
+            case INTEGER:
+                builder.append(value.unboxInt());
+                break;
+            case LONG:
+                builder.append(value.unboxLong());
+                break;
+            case NULL:
+                builder.append(UNKNOWN_STRING);
+                break;
+            case STRING:
+                builder.append(value.unboxStr());
+                break;
+            default:
+                throw new StateValueTypeException("Invalid type of state value"); //$NON-NLS-1$
+            }
+        } catch (AttributeNotFoundException e) {
+            Activator.logInfo("Impossible to get the state value", e); //$NON-NLS-1$
+        }
+    }
+
+    private static void getNameFromXmlStateValue(ITmfEvent event, StringBuilder builder, ITmfXmlStateValue xmlStateValue, String scenarioName, String activeState) {
+        try {
+            ITmfStateValue value = xmlStateValue.getValue(event, scenarioName, activeState);
             switch (value.getType()) {
             case DOUBLE:
                 builder.append(value.unboxDouble());
@@ -243,6 +337,30 @@ public class TmfXmlPatternSegmentBuilder {
         }
 
         /**
+         * Get the real value of the XML pattern segment field
+         *
+         * @param event
+         *            The active event
+         * @return The state value representing the value of the XML pattern
+         *         segment field
+         * @param scenarioName
+     	 *            The active scenario name
+     	 * @param activeState
+     	 *            The active state
+         */
+        public ITmfStateValue getValue(ITmfEvent event, String scenarioName, String activeState) {
+            if (fStateValue != null) {
+                return fStateValue;
+            }
+            try {
+                return checkNotNull(fXmlStateValue).getValue(event, scenarioName, activeState);
+            } catch (AttributeNotFoundException e) {
+                Activator.logError("Failed to get the state value", e); //$NON-NLS-1$
+            }
+            throw new IllegalStateException("Failed to get the value for the segment field " + fName); //$NON-NLS-1$
+        }
+
+        /**
          * Get the name of the XML pattern segment field
          *
          * @return The name
@@ -294,6 +412,27 @@ public class TmfXmlPatternSegmentBuilder {
             StringBuilder name = new StringBuilder(PATTERN_SEGMENT_NAME_PREFIX);
             if (fNameStateValue != null) {
                 getNameFromXmlStateValue(event, name, fNameStateValue);
+            } else {
+                name.append(fSegmentNameAttribute);
+            }
+            return name.toString();
+        }
+
+        /**
+         * Get the name of the segment
+         *
+         * @param event
+         *            The active event
+		 * @param scenarioName
+     	 *            The active scenario name
+     	 * @param activeState
+     	 *            The active state
+         * @return The segment name
+         */
+        public String getName(ITmfEvent event, String scenarioName, String activeState) {
+            StringBuilder name = new StringBuilder(PATTERN_SEGMENT_NAME_PREFIX);
+            if (fNameStateValue != null) {
+                getNameFromXmlStateValue(event, name, fNameStateValue, scenarioName, activeState);
             } else {
                 name.append(fSegmentNameAttribute);
             }

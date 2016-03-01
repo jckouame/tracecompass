@@ -14,6 +14,7 @@ package org.eclipse.tracecompass.tmf.analysis.xml.core.model;
 
 import java.util.List;
 
+import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.module.IXmlStateSystemContainer;
 import org.w3c.dom.Element;
 
@@ -108,5 +109,102 @@ public interface ITmfXmlModelFactory {
      * @return The new XML location
      */
     TmfXmlLocation createLocation(Element node, IXmlStateSystemContainer container);
+
+    /**
+     * Create a new XML pattern event handler
+     *
+     * @param node
+     *            The XML pattern event handler element
+     * @param container
+     *            The state system container this pattern event handler belongs to
+     * @return The new XML pattern event handler
+     * @since 2.0
+     */
+    TmfXmlPatternEventHandler createPatternEventHandler(Element node, IXmlStateSystemContainer container);
+
+    /**
+     * Create a new XML test
+     *
+     * @param node
+     *            The XML test element
+     * @param container
+     *            The state system container this test belongs to
+     * @return The new XML test
+     * @since 2.0
+     */
+    TmfXmlTest createTest(Element node, IXmlStateSystemContainer container);
+
+    /**
+     * Create a new XML action
+     *
+     * @param node
+     *            The XML action element
+     * @param container
+     *            The state system container this action belongs to
+     * @return The new XML action
+     * @since 2.0
+     */
+    TmfXmlAction createAction(Element node, IXmlStateSystemContainer container);
+
+    /**
+     * Create a new XML FSM
+     *
+     * @param node
+     *            The XML FSM element
+     * @param container
+     *            The state system container this FSM belongs to
+     * @return The new XML FSM
+     * @since 2.0
+     */
+    TmfXmlFsm createFsm(Element node, IXmlStateSystemContainer container);
+
+    /**
+     * Create a new XML state
+     *
+     * @param node
+     *            The XML state element
+     * @param container
+     *            The state system container this state belongs to
+     * @param parent TODO
+     * @return The new XML state definition
+     * @since 2.0
+     */
+    TmfXmlState createState(Element node, IXmlStateSystemContainer container, @Nullable TmfXmlState parent);
+
+    /**
+     * Create a new XML state transition
+     *
+     * @param node
+     *            The XML state transition element
+     * @param container
+     *            The state system container this state transition belongs to
+     * @return The new XML state transition
+     * @since 2.0
+     */
+    TmfXmlStateTransition createStateTransition(Element node, IXmlStateSystemContainer container);
+
+    /**
+     * Create a new XML timestamp condition
+     *
+     * @param node
+     *            The XML timestamp condition element
+     * @param container
+     *            The state system container this timestamp condition belongs to
+     * @return The new XML timestamp condition
+     * @since 2.0
+     */
+    TmfXmlTimestampCondition createTimestampsCondition(Element node, IXmlStateSystemContainer container);
+
+    /**
+     * Create a new pattern segment builder
+     *
+     * @param node
+     *            The XML pattern segment builder
+     * @param container
+     *            The state system container this pattern segment builder belongs to
+     * @return The new pattern segment builder
+     * @since 2.0
+     */
+    TmfXmlPatternSegmentBuilder createPatternSegmentBuilder(Element node, IXmlStateSystemContainer container);
 
 }

@@ -24,6 +24,7 @@ import org.eclipse.tracecompass.statesystem.core.statevalue.TmfStateValue;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.module.IXmlStateSystemContainer;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.segment.TmfXmlPatternSegment;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.stateprovider.TmfXmlStrings;
+import org.eclipse.tracecompass.tmf.analysis.xml.core.stateprovider.XmlPatternStateProvider;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
 import org.eclipse.tracecompass.tmf.core.timestamp.ITmfTimestamp;
 import org.w3c.dom.Element;
@@ -102,7 +103,11 @@ public class TmfXmlPatternSegmentBuilder {
         String segmentName = getPatternSegmentName(event);
         Map<String, ITmfStateValue> fields = new HashMap<>();
         setPatternSegmentContent(event, start, end, fields);
-        return new TmfXmlPatternSegment(startValue, endValue, scale, segmentName, fields);
+        TmfXmlPatternSegment segment = new TmfXmlPatternSegment(startValue, endValue, scale, segmentName, fields);
+        if (fContainer instanceof XmlPatternStateProvider) {
+            ((XmlPatternStateProvider) fContainer).getListener().onNewSegment(segment);
+        }
+        return segment;
     }
 
     /**

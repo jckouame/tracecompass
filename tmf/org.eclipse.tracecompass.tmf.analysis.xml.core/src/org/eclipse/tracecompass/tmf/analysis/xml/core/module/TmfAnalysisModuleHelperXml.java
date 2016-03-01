@@ -22,6 +22,7 @@ import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.tracecompass.common.core.NonNullUtils;
 import org.eclipse.tracecompass.internal.tmf.analysis.xml.core.Activator;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.stateprovider.TmfXmlStrings;
+import org.eclipse.tracecompass.tmf.analysis.xml.core.stateprovider.XmlPatternAnalysis;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.stateprovider.XmlStateSystemModule;
 import org.eclipse.tracecompass.tmf.core.analysis.IAnalysisModule;
 import org.eclipse.tracecompass.tmf.core.analysis.IAnalysisModuleHelper;
@@ -48,7 +49,14 @@ public class TmfAnalysisModuleHelperXml implements IAnalysisModuleHelper, ITmfPr
      */
     public enum XmlAnalysisModuleType {
         /** Analysis will be of type XmlStateSystemModule */
-        STATE_SYSTEM
+        STATE_SYSTEM,
+
+        /**
+         * Analysis will be of type XmlPatternAnalysisModule
+         *
+         * @since 2.0
+         */
+        PATTERN
     }
 
     private final File fSourceFile;
@@ -183,6 +191,18 @@ public class TmfAnalysisModuleHelperXml implements IAnalysisModuleHelper, ITmfPr
              * default to true
              */
             ssModule.setAutomatic(true);
+
+            break;
+        case PATTERN:
+            module = new XmlPatternAnalysis();
+            XmlPatternAnalysis paModule = (XmlPatternAnalysis) module;
+            module.setId(analysisid);
+            paModule.setXmlFile(new Path(fSourceFile.getAbsolutePath()));
+
+            /*
+             * FIXME: Maybe the pattern analysis should not be automatic.
+             */
+            paModule.setAutomatic(true);
 
             break;
         default:

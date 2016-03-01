@@ -8,7 +8,10 @@
  ******************************************************************************/
 package org.eclipse.tracecompass.tmf.analysis.xml.core.stateprovider;
 
+import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
+
 import java.io.File;
+import java.util.Comparator;
 import java.util.concurrent.CountDownLatch;
 
 import org.eclipse.core.runtime.IPath;
@@ -16,15 +19,21 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
-import org.eclipse.tracecompass.analysis.timing.core.segmentstore.ITmfAnalysisModuleWithSegmentStore;
+import org.eclipse.tracecompass.analysis.timing.core.segmentstore.IAnalysisProgressListener;
+import org.eclipse.tracecompass.analysis.timing.core.segmentstore.ISegmentStoreProvider;
 import org.eclipse.tracecompass.segmentstore.core.ISegment;
 import org.eclipse.tracecompass.segmentstore.core.ISegmentStore;
 import org.eclipse.tracecompass.statesystem.core.ITmfStateSystem;
+import org.eclipse.tracecompass.tmf.analysis.xml.core.model.TmfXmlPatternSegmentBuilder;
+import org.eclipse.tracecompass.tmf.analysis.xml.core.segment.TmfXmlPatternSegment;
 import org.eclipse.tracecompass.tmf.core.analysis.TmfAbstractAnalysisModule;
 import org.eclipse.tracecompass.tmf.core.exceptions.TmfAnalysisException;
+import org.eclipse.tracecompass.tmf.core.segment.ISegmentAspect;
 import org.eclipse.tracecompass.tmf.core.statesystem.ITmfAnalysisModuleWithStateSystems;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTraceManager;
+
+import com.google.common.collect.ImmutableList;
 
 /**
  * Analysis module for pattern matching within traces. This module creates two
@@ -36,7 +45,7 @@ import org.eclipse.tracecompass.tmf.core.trace.TmfTraceManager;
  * @since 2.0
  *
  */
-public class XmlPatternAnalysis extends TmfAbstractAnalysisModule implements ITmfAnalysisModuleWithStateSystems, ITmfAnalysisModuleWithSegmentStore {
+public class XmlPatternAnalysis extends TmfAbstractAnalysisModule implements ITmfAnalysisModuleWithStateSystems, ISegmentStoreProvider {
 
     private static final @NonNull String STATE_SYSTEM_EXTENSION = ".ht"; //$NON-NLS-1$
     private static final @NonNull String SEGMENT_STORE_EXTENSION = ".dat"; //$NON-NLS-1$
@@ -44,7 +53,6 @@ public class XmlPatternAnalysis extends TmfAbstractAnalysisModule implements ITm
     private XmlPatternStateSystemModule fStateSystemModule;
     private XmlPatternSegmentStoreModule fSegmentStoreModule;
     private boolean fInitializationSucceeded;
-//    private static final String EXTENSION = ".ht"; //$NON-NLS-1$
 
     /**
      * Constructor
@@ -206,5 +214,47 @@ public class XmlPatternAnalysis extends TmfAbstractAnalysisModule implements ITm
 
     private String getSegmentStoreFileName() {
         return fSegmentStoreModule.getId() + SEGMENT_STORE_EXTENSION;
+    }
+
+    @Override
+    public void addListener(@NonNull IAnalysisProgressListener listener) {
+        fSegmentStoreModule.addListener(listener);
+    }
+
+    @Override
+    public void removeListener(@NonNull IAnalysisProgressListener listener) {
+        fSegmentStoreModule.removeListener(listener);
+    }
+
+    @Override
+    public Iterable<ISegmentAspect> getSegmentAspects() {
+        return ImmutableList.of(PatternSegmentNameAspect.INSTANCE);
+    }
+
+    private static class PatternSegmentNameAspect implements ISegmentAspect {
+        public static final ISegmentAspect INSTANCE = new PatternSegmentNameAspect();
+
+        private PatternSegmentNameAspect() {}
+
+        @Override
+        public String getHelpText() {
+            return checkNotNull("The name of the segment");
+        }
+        @Override
+        public String getName() {
+            return checkNotNull("name");
+        }
+        @Override
+        public @Nullable Comparator<?> getComparator() {
+            return null;
+        }
+        @Override
+        public @Nullable String resolve(ISegment segment) {
+            if (segment instanceof TmfXmlPatternSegment) {
+                return ((TmfXmlPatternSegment) segment).getName()
+                        .substring(TmfXmlPatternSegmentBuilder.PATTERN_SEGMENT_NAME_PREFIX.length());
+            }
+            return EMPTY_STRING;
+        }
     }
 }

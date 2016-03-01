@@ -27,6 +27,10 @@ import org.eclipse.tracecompass.internal.tmf.analysis.xml.ui.TmfXmlUiStrings;
 import org.eclipse.tracecompass.internal.tmf.analysis.xml.ui.views.xychart.XmlXYView;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.module.XmlUtils;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.stateprovider.TmfXmlStrings;
+import org.eclipse.tracecompass.tmf.analysis.xml.core.stateprovider.XmlPatternAnalysis;
+import org.eclipse.tracecompass.tmf.analysis.xml.ui.views.latency.PatternDensityView;
+import org.eclipse.tracecompass.tmf.analysis.xml.ui.views.latency.PatternLatencyTableView;
+import org.eclipse.tracecompass.tmf.analysis.xml.ui.views.latency.PatternScatterGraphView;
 import org.eclipse.tracecompass.tmf.analysis.xml.ui.views.timegraph.XmlTimeGraphView;
 import org.eclipse.tracecompass.tmf.core.analysis.IAnalysisModule;
 import org.eclipse.tracecompass.tmf.core.analysis.IAnalysisOutput;
@@ -83,6 +87,57 @@ public class TmfXmlAnalysisOutputSource implements ITmfNewAnalysisModuleListener
         }
     }
 
+    /**
+     * Enum for latency view type.
+     *
+     * @author Jean-Christian Kouame
+     * @since 2.0
+     *
+     */
+    public static enum LatencyViewType {
+
+        /**
+         * Latency Table View type
+         */
+        LATENCY_TABLE(PatternLatencyTableView.ID, "Latency Table"), //$NON-NLS-1$
+
+        /**
+         * Latency Scatter View type
+         */
+        SCATTER_GRAPH(PatternScatterGraphView.ID, "Latency vs Time"), //$NON-NLS-1$
+
+        /**
+         * Latency Density View type
+         */
+        DENSITY_VIEW(PatternDensityView.ID, "Latency vs Count"); //$NON-NLS-1$
+
+        private @NonNull String fLatencyViewId;
+        private String fLatencyViewLabel;
+
+        private LatencyViewType(@NonNull String viewId, String label) {
+            fLatencyViewId = viewId;
+            fLatencyViewLabel = label;
+        }
+
+        /**
+         * Get the ID of the latency view
+         *
+         * @return The ID
+         */
+        public String getViewId() {
+            return fLatencyViewId;
+        }
+
+        /**
+         * Get the label of the view
+         *
+         * @return The label
+         */
+        public String getLabel() {
+            return fLatencyViewLabel;
+        }
+
+    }
 
     @Override
     public void moduleCreated(IAnalysisModule module) {
@@ -125,6 +180,16 @@ public class TmfXmlAnalysisOutputSource implements ITmfNewAnalysisModuleListener
                         }
                     }
                 }
+
+                //Add the latency views for pattern analysis
+                if (module instanceof XmlPatternAnalysis) {
+                    for (LatencyViewType viewType : LatencyViewType.values()) {
+                        IAnalysisOutput output = new TmfXmlLatencyViewOutput(viewType.getViewId(), viewType.getLabel());
+                        output.setOutputProperty(TmfXmlUiStrings.XML_LATENCY_OUTPUT_DATA, module.getId() + DATA_SEPARATOR + viewType.getLabel(), false);
+                        module.registerOutput(output);
+                    }
+                }
+
             } catch (ParserConfigurationException | SAXException | IOException e) {
                 Activator.logError("Error opening XML file", e); //$NON-NLS-1$
             }

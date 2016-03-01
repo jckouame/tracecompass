@@ -78,5 +78,28 @@
             name="%xmlxychart.view.name"
             restorable="true">
       </view>
+      <view
+            allowMultiple="false"
+            category="org.eclipse.linuxtools.tmf.ui.views.category"
+            class="org.eclipse.tracecompass.tmf.analysis.xml.ui.views.latency.PatternLatencyTableView"
+            id="org.eclipse.tracecompass.internal.tmf.analysis.xml.ui.views.latencyTable"
+            name="Latency Table"
+            restorable="true">
+      </view>
+      <view
+            category="org.eclipse.linuxtools.tmf.ui.views.category"
+            class="org.eclipse.tracecompass.tmf.analysis.xml.ui.views.latency.PatternScatterGraphView"
+            id="org.eclipse.tracecompass.internal.tmf.analysis.xml.ui.views.scatterGraph"
+            name="Latency vs Time"
+            restorable="true">
+      </view>
+      <view
+            allowMultiple="false"
+            category="org.eclipse.linuxtools.tmf.ui.views.category"
+            class="org.eclipse.tracecompass.tmf.analysis.xml.ui.views.latency.PatternDensityView"
+            id="org.eclipse.tracecompass.internal.tmf.analysis.xml.ui.views.densityView"
+            name="Latency vs Count"
+            restorable="true">
+      </view>
    </extension>
 </plugin>

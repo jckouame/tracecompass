@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -601,6 +602,42 @@ public class StateSystem implements ITmfStateSystemBuilder {
         }
         LOGGER.info(() -> "[StateSystem:SingleQueryEnd]");  //$NON-NLS-1$
         return ret;
+    }
+
+    @Override
+    public Iterator<ITmfStateInterval> getIteratorOverQuark(int quark, long start, long end) {
+        if (end < start) {
+            throw new TimeRangeException("iterateOverQuark: end < start !"); //$NON-NLS-1$
+        }
+
+        if (start < getStartTime()) {
+            throw new TimeRangeException("iterateOverQuark: start < ss.getStartTime !"); //$NON-NLS-1$
+        }
+
+        return new Iterator<ITmfStateInterval>() {
+            ITmfStateInterval fPrevious = null;
+
+            @Override
+            public boolean hasNext() {
+                if (fPrevious == null) {
+                    /* iteration has not yet started */
+                    return end <= getCurrentEndTime();
+                }
+                return fPrevious.getEndTime() < end;
+            }
+
+            /* Not thread safe! */
+            @Override
+            public ITmfStateInterval next() {
+                long queryTime = fPrevious == null ? start : fPrevious.getEndTime() + 1;
+                try {
+                    fPrevious = querySingleState(queryTime, quark);
+                } catch (TimeRangeException | StateSystemDisposedException e) {
+                    Activator.getDefault().logError(e.getMessage());
+                }
+                return fPrevious;
+            }
+        };
     }
 
     //--------------------------------------------------------------------------

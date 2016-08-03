@@ -13,12 +13,21 @@
 
 package org.eclipse.tracecompass.analysis.timing.ui.views.segmentstore.table;
 
+import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.tracecompass.analysis.timing.core.segmentstore.ISegmentStoreProvider;
+import org.eclipse.tracecompass.common.core.NonNullUtils;
+import org.eclipse.tracecompass.internal.analysis.timing.ui.views.filter.dialog.LatencyViewFilterDialog;
+import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
+import org.eclipse.tracecompass.tmf.core.trace.TmfTraceManager;
 import org.eclipse.tracecompass.tmf.ui.views.TmfView;
+import org.eclipse.ui.IActionBars;
 
 /**
  * View for displaying a segment store analysis in a table.
@@ -33,6 +42,8 @@ public abstract class AbstractSegmentStoreTableView extends TmfView {
     // ------------------------------------------------------------------------
 
     private @Nullable AbstractSegmentStoreTableViewer fSegmentStoreViewer;
+    private @Nullable Action fFilter;
+    private @Nullable Composite fParent;
 
     // ------------------------------------------------------------------------
     // Constructor
@@ -51,15 +62,49 @@ public abstract class AbstractSegmentStoreTableView extends TmfView {
 
     @Override
     public void createPartControl(@Nullable Composite parent) {
+        fParent = parent;
         SashForm sf = new SashForm(parent, SWT.NONE);
         TableViewer tableViewer = new TableViewer(sf, SWT.FULL_SELECTION | SWT.VIRTUAL);
+
         fSegmentStoreViewer = createSegmentStoreViewer(tableViewer);
         setInitialData();
+
+        IActionBars bars = getViewSite().getActionBars();
+        fillLocalToolBar(NonNullUtils.checkNotNull(bars.getToolBarManager()));
+    }
+
+    private void fillLocalToolBar(IToolBarManager manager) {
+        manager.add(createFilterActions());
     }
 
     // ------------------------------------------------------------------------
     // Operations
     // ------------------------------------------------------------------------
+
+    private @Nullable Action createFilterActions() {
+        if (fFilter == null) {
+            fFilter = new Action() {
+                @Override
+                public void run() {
+                    showFilterDialog();
+                }
+            };
+        }
+        return fFilter;
+    }
+
+    private void showFilterDialog() {
+        final Composite parent = fParent;
+        ITmfTrace trace = TmfTraceManager.getInstance().getActiveTrace();
+        final @Nullable AbstractSegmentStoreTableViewer viewer = fSegmentStoreViewer;
+        if (trace != null && parent != null && viewer != null && !parent.isDisposed()) {
+            @Nullable ISegmentStoreProvider segmentProvider = viewer.getSegmentProvider();
+            if (segmentProvider != null) {
+                LatencyViewFilterDialog dialog = new LatencyViewFilterDialog(NonNullUtils.checkNotNull(parent.getShell()), trace, viewer.getColumnsAspects(), segmentProvider.getProviderId());
+                dialog.open();
+            }
+        }
+    }
 
     @Override
     public void setFocus() {
@@ -100,7 +145,9 @@ public abstract class AbstractSegmentStoreTableView extends TmfView {
      */
     private void setInitialData() {
         if (fSegmentStoreViewer != null) {
-            fSegmentStoreViewer.setData(fSegmentStoreViewer.getSegmentProvider());
+            @NonNull AbstractSegmentStoreTableViewer segmentStoreViewer = fSegmentStoreViewer;
+            @Nullable ISegmentStoreProvider segmentProvider = segmentStoreViewer.getSegmentProvider();
+            segmentStoreViewer.setData(segmentProvider);
         }
     }
 }

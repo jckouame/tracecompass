@@ -13,9 +13,14 @@
 
 package org.eclipse.tracecompass.analysis.timing.ui.views.segmentstore.table;
 
-import java.text.DecimalFormat;
-import java.text.Format;
+import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
+
+import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
@@ -34,14 +39,19 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.tracecompass.analysis.timing.core.segmentstore.IAnalysisProgressListener;
 import org.eclipse.tracecompass.analysis.timing.core.segmentstore.ISegmentStoreProvider;
 import org.eclipse.tracecompass.common.core.NonNullUtils;
+import org.eclipse.tracecompass.internal.analysis.timing.core.store.ArrayListStore;
+import org.eclipse.tracecompass.internal.analysis.timing.ui.views.filter.model.FilterManager;
+import org.eclipse.tracecompass.internal.analysis.timing.ui.views.filter.model.ISegmentFilter;
+import org.eclipse.tracecompass.internal.analysis.timing.ui.views.filter.model.SegmentFilter;
+import org.eclipse.tracecompass.internal.analysis.timing.ui.views.filter.signal.TmfSegmentFilterAppliedSignal;
 import org.eclipse.tracecompass.internal.analysis.timing.ui.views.segmentstore.table.Messages;
 import org.eclipse.tracecompass.internal.analysis.timing.ui.views.segmentstore.table.SegmentStoreContentProvider;
 import org.eclipse.tracecompass.segmentstore.core.ISegment;
 import org.eclipse.tracecompass.segmentstore.core.ISegmentStore;
-import org.eclipse.tracecompass.segmentstore.core.SegmentComparators;
 import org.eclipse.tracecompass.tmf.core.analysis.IAnalysisModule;
 import org.eclipse.tracecompass.tmf.core.segment.ISegmentAspect;
 import org.eclipse.tracecompass.tmf.core.signal.TmfSelectionRangeUpdatedSignal;
+import org.eclipse.tracecompass.tmf.core.signal.TmfSignal;
 import org.eclipse.tracecompass.tmf.core.signal.TmfSignalHandler;
 import org.eclipse.tracecompass.tmf.core.signal.TmfSignalManager;
 import org.eclipse.tracecompass.tmf.core.signal.TmfTraceClosedSignal;
@@ -49,10 +59,11 @@ import org.eclipse.tracecompass.tmf.core.signal.TmfTraceOpenedSignal;
 import org.eclipse.tracecompass.tmf.core.signal.TmfTraceSelectedSignal;
 import org.eclipse.tracecompass.tmf.core.timestamp.ITmfTimestamp;
 import org.eclipse.tracecompass.tmf.core.timestamp.TmfTimestamp;
-import org.eclipse.tracecompass.tmf.core.timestamp.TmfTimestampFormat;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTraceManager;
 import org.eclipse.tracecompass.tmf.ui.viewers.table.TmfSimpleTableViewer;
+
+import com.google.common.collect.ImmutableList;
 
 /**
  * Displays the segment store provider data in a column table
@@ -62,7 +73,7 @@ import org.eclipse.tracecompass.tmf.ui.viewers.table.TmfSimpleTableViewer;
  */
 public abstract class AbstractSegmentStoreTableViewer extends TmfSimpleTableViewer {
 
-    private static final Format FORMATTER = new DecimalFormat("###,###.##");
+//    private static final Format FORMATTER = new DecimalFormat("###,###.##");
 
     // ------------------------------------------------------------------------
     // Attributes
@@ -96,7 +107,7 @@ public abstract class AbstractSegmentStoreTableViewer extends TmfSimpleTableView
             // Check if the active trace was changed while the provider was
             // building its segment store
             if (activeProvider.equals(fSegmentProvider)) {
-                updateModel(data);
+                updateModel(getSegmentStore(activeProvider));
             }
         }
     }
@@ -130,6 +141,11 @@ public abstract class AbstractSegmentStoreTableViewer extends TmfSimpleTableView
      */
     boolean fColumnsCreated = false;
 
+    private List<ISegmentAspect> fColumnsAspects = new ArrayList<>();
+
+    @Nullable
+    private ISegmentFilter fFilter;
+
     // ------------------------------------------------------------------------
     // Constructor
     // ------------------------------------------------------------------------
@@ -148,7 +164,7 @@ public abstract class AbstractSegmentStoreTableViewer extends TmfSimpleTableView
         if (trace != null) {
             fSegmentProvider = getSegmentStoreProvider(trace);
         }
-        createColumns();
+//        createColumns();
         getTableViewer().getTable().addSelectionListener(new TableSelectionListener());
         addPackListener();
         fListener = new SegmentStoreProviderProgressListener();
@@ -159,30 +175,44 @@ public abstract class AbstractSegmentStoreTableViewer extends TmfSimpleTableView
     // ------------------------------------------------------------------------
 
     /**
+     * The list of column aspects for the view
+     *
+     * @return The list
+     * @since 2.0
+     */
+    protected synchronized List<ISegmentAspect> getColumnsAspects() {
+        return ImmutableList.copyOf(fColumnsAspects);
+    }
+
+    /**
      * Create default columns for start time, end time and duration
      */
-    private void createColumns() {
-        createColumn(Messages.SegmentStoreTableViewer_startTime, new SegmentStoreTableColumnLabelProvider() {
-            @Override
-            public String getTextForSegment(ISegment input) {
-                return NonNullUtils.nullToEmptyString(TmfTimestampFormat.getDefaulTimeFormat().format(input.getStart()));
-            }
-        }, SegmentComparators.INTERVAL_START_COMPARATOR);
-
-        createColumn(Messages.SegmentStoreTableViewer_endTime, new SegmentStoreTableColumnLabelProvider() {
-            @Override
-            public String getTextForSegment(ISegment input) {
-                return NonNullUtils.nullToEmptyString(TmfTimestampFormat.getDefaulTimeFormat().format(input.getEnd()));
-            }
-        }, SegmentComparators.INTERVAL_END_COMPARATOR);
-
-        createColumn(Messages.SegmentStoreTableViewer_duration, new SegmentStoreTableColumnLabelProvider() {
-            @Override
-            public String getTextForSegment(ISegment input) {
-                return NonNullUtils.nullToEmptyString(FORMATTER.format(input.getLength()));
-            }
-        }, SegmentComparators.INTERVAL_LENGTH_COMPARATOR);
-    }
+//    private void createColumns() {
+//        createColumn(StartAspect.INSTANCE.getName(), new SegmentStoreTableColumnLabelProvider() {
+//            @Override
+//            public String getTextForSegment(ISegment input) {
+//                return NonNullUtils.nullToEmptyString(StartAspect.INSTANCE.resolve(input));
+//            }
+//        }, SegmentComparators.INTERVAL_START_COMPARATOR);
+//
+//        createColumn(EndAspect.INSTANCE.getName(), new SegmentStoreTableColumnLabelProvider() {
+//            @Override
+//            public String getTextForSegment(ISegment input) {
+//                return NonNullUtils.nullToEmptyString(EndAspect.INSTANCE.resolve(input));
+//            }
+//        }, SegmentComparators.INTERVAL_END_COMPARATOR);
+//
+//        createColumn(DurationAspect.INSTANCE.getName(), new SegmentStoreTableColumnLabelProvider() {
+//            @Override
+//            public String getTextForSegment(ISegment input) {
+//                return NonNullUtils.nullToEmptyString(DurationAspect.INSTANCE.resolve(input));
+//            }
+//        }, SegmentComparators.INTERVAL_LENGTH_COMPARATOR);
+//
+//        fColumnsAspects.add(StartAspect.INSTANCE);
+//        fColumnsAspects.add(EndAspect.INSTANCE);
+//        fColumnsAspects.add(DurationAspect.INSTANCE);
+//    }
 
     /**
      * Create columns specific to the provider
@@ -199,6 +229,7 @@ public abstract class AbstractSegmentStoreTableViewer extends TmfSimpleTableView
                         }
                     },
                             aspect.getComparator());
+                    fColumnsAspects.add(aspect);
                 }
             }
             fColumnsCreated = true;
@@ -252,10 +283,10 @@ public abstract class AbstractSegmentStoreTableViewer extends TmfSimpleTableView
 
         createProviderColumns();
 
-        ISegmentStore<ISegment> segStore = provider.getSegmentStore();
+        ISegmentStore<ISegment> segStore = getSegmentStore(provider);
         // If results are not null, then the segment of the provider is ready
         // and model can be updated
-        if (segStore != null) {
+        if (segStore != null && !segStore.isEmpty()) {
             updateModel(segStore);
             return;
         }
@@ -266,6 +297,29 @@ public abstract class AbstractSegmentStoreTableViewer extends TmfSimpleTableView
         if (provider instanceof IAnalysisModule) {
             ((IAnalysisModule) provider).schedule();
         }
+    }
+
+    /**
+     * @since 1.1
+     */
+    private @Nullable ISegmentStore<@NonNull ISegment> getSegmentStore(ISegmentStoreProvider provider) {
+        final @Nullable ISegmentStore<@NonNull ISegment> segmentStore = provider.getSegmentStore();
+        if (segmentStore != null) {
+            setFilter(provider);
+        }
+        return applyFilter(segmentStore);
+    }
+
+    /**
+     * @param segmentStore
+     * @return
+     */
+    private ISegmentStore<@NonNull ISegment> applyFilter(@Nullable final ISegmentStore<@NonNull ISegment> segmentStore) {
+        if (segmentStore != null) {
+            Collector<@NonNull ISegment, ?, @NonNull ArrayListStore<ISegment>> collection = Collectors.toCollection(ArrayListStore::new);
+            return fFilter != null ? segmentStore.stream().filter(segment -> checkNotNull(fFilter).matches(segment)).collect(collection) : segmentStore;
+        }
+        return new ArrayListStore<>();
     }
 
     /**
@@ -328,9 +382,28 @@ public abstract class AbstractSegmentStoreTableViewer extends TmfSimpleTableView
     public void traceSelected(TmfTraceSelectedSignal signal) {
         ITmfTrace trace = signal.getTrace();
         if (trace != null) {
-            setData(getSegmentStoreProvider(trace));
+            @Nullable
+            ISegmentStoreProvider ssProvider = getSegmentStoreProvider(trace);
+            setData(ssProvider);
         }
     }
+
+    /**
+     * @param signal
+     * @since 2.0
+     */
+//    @TmfSignalHandler
+//    public void traceAnalysisStarted(TmfStartAnalysisSignal signal) {
+//        ITmfTrace trace = TmfTraceManager.getInstance().getActiveTrace();
+//        if (trace != null) {
+//            @Nullable
+//            ISegmentStoreProvider ssProvider = getSegmentStoreProvider(trace);
+//            if (ssProvider != null && ssProvider.getProviderId().equals(signal.getAnalysisModule().getId())) {
+//                setFilter(ssProvider);
+//                setData(ssProvider);
+//            }
+//        }
+//    }
 
     /**
      * Trace opened handler
@@ -343,7 +416,15 @@ public abstract class AbstractSegmentStoreTableViewer extends TmfSimpleTableView
     public void traceOpened(TmfTraceOpenedSignal signal) {
         ITmfTrace trace = signal.getTrace();
         if (trace != null) {
-            setData(getSegmentStoreProvider(trace));
+            @Nullable
+            ISegmentStoreProvider ssProvider = getSegmentStoreProvider(trace);
+            setData(ssProvider);
+        }
+    }
+
+    void setFilter(@Nullable ISegmentStoreProvider provider) {
+        if (provider != null) {
+            fFilter = FilterManager.getInstance().getSegmentFilter(provider.getProviderId());
         }
     }
 
@@ -366,6 +447,31 @@ public abstract class AbstractSegmentStoreTableViewer extends TmfSimpleTableView
             ISegmentStoreProvider provider = getSegmentProvider();
             if ((provider != null)) {
                 provider.removeListener(fListener);
+            }
+        }
+    }
+
+    /**
+     * @param signal
+     *            Signal received when a filter is applied to the segment store
+     *            provider
+     * @since 2.0
+     */
+    @TmfSignalHandler
+    public synchronized void segmentFilterApplied(TmfSignal signal) {
+        if (signal instanceof TmfSegmentFilterAppliedSignal) {
+            @Nullable
+            ISegmentStoreProvider segmentProvider = getSegmentProvider();
+            ITmfTrace trace = TmfTraceManager.getInstance().getActiveTrace();
+            ISegmentFilter filter = ((TmfSegmentFilterAppliedSignal) signal).getFilter();
+            if (filter instanceof SegmentFilter) {
+                SegmentFilter segmentFilter = (SegmentFilter) filter;
+                if (trace.equals(((TmfSegmentFilterAppliedSignal) signal).getTrace())
+                        && segmentProvider != null
+                        && segmentProvider.getProviderId().equals(segmentFilter.getSegmentProviderId())) {
+                    fFilter = filter;
+                    setData(getSegmentProvider());
+                }
             }
         }
     }
@@ -394,4 +500,87 @@ public abstract class AbstractSegmentStoreTableViewer extends TmfSimpleTableView
             }
         });
     }
+
+//    private static List<ISegmentAspect> BASED_TABLE_ASPECTS = ImmutableList.of(StartAspect.INSTANCE, EndAspect.INSTANCE,
+//            DurationAspect.INSTANCE);
+//    private static final class StartAspect implements ISegmentAspect {
+//        public static final ISegmentAspect INSTANCE = new StartAspect();
+//
+//        private StartAspect() {
+//        }
+//
+//        @Override
+//        public String getHelpText() {
+//            return checkNotNull(Messages.SegmentStoreTableViewer_startTime);
+//        }
+//
+//        @Override
+//        public String getName() {
+//            return checkNotNull(Messages.SegmentStoreTableViewer_startTime);
+//        }
+//
+//        @Override
+//        public @Nullable Comparator<?> getComparator() {
+//            return null;
+//        }
+//
+//        @Override
+//        public @Nullable String resolve(ISegment segment) {
+//            return TmfTimestampFormat.getDefaulTimeFormat().format(segment.getStart());
+//        }
+//    }
+//
+//    private static final class EndAspect implements ISegmentAspect {
+//        public static final ISegmentAspect INSTANCE = new EndAspect();
+//
+//        private EndAspect() {
+//        }
+//
+//        @Override
+//        public String getHelpText() {
+//            return checkNotNull(Messages.SegmentStoreTableViewer_endTime);
+//        }
+//
+//        @Override
+//        public String getName() {
+//            return checkNotNull(Messages.SegmentStoreTableViewer_endTime);
+//        }
+//
+//        @Override
+//        public @Nullable Comparator<?> getComparator() {
+//            return null;
+//        }
+//
+//        @Override
+//        public @Nullable String resolve(ISegment segment) {
+//            return TmfTimestampFormat.getDefaulTimeFormat().format(segment.getEnd());
+//        }
+//    }
+//
+//    private static final class DurationAspect implements ISegmentAspect {
+//        public static final ISegmentAspect INSTANCE = new DurationAspect();
+//
+//        private DurationAspect() {
+//        }
+//
+//        @Override
+//        public String getHelpText() {
+//            return checkNotNull(Messages.SegmentStoreTableViewer_duration);
+//        }
+//
+//        @Override
+//        public String getName() {
+//            return checkNotNull(Messages.SegmentStoreTableViewer_duration);
+//        }
+//
+//        @Override
+//        public @Nullable Comparator<?> getComparator() {
+//            return null;
+//        }
+//
+//        @Override
+//        public @Nullable String resolve(ISegment segment) {
+//            return FORMATTER.format(segment.getLength());
+//        }
+//    }
 }

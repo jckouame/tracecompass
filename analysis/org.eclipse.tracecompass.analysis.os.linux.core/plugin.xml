@@ -6,6 +6,7 @@
       <module
             analysis_module="org.eclipse.tracecompass.analysis.os.linux.core.kernel.KernelAnalysisModule"
             automatic="true"
+            icon="icons/tux-by-lewing_at_isc.tamu.edu.png"
             id="org.eclipse.tracecompass.analysis.os.linux.kernel"
             name="%analysis.linuxkernel">
          <tracetype
@@ -16,6 +17,7 @@
       <module
             analysis_module="org.eclipse.tracecompass.analysis.os.linux.core.cpuusage.KernelCpuUsageAnalysis"
             automatic="false"
+            icon="icons/cpuusage.png"
             id="org.eclipse.tracecompass.analysis.os.linux.cpuusage"
             name="%analysis.cpuusage">
          <tracetype
@@ -36,6 +38,7 @@
       </module>
       <module
             analysis_module="org.eclipse.tracecompass.analysis.os.linux.core.contextswitch.KernelContextSwitchAnalysis"
+            icon="icons/contextswitch.png"
             id="org.eclipse.tracecompass.analysis.os.linux.contextswitch"
             name="%analysis.contextswitch">
          <tracetype
@@ -45,6 +48,7 @@
       </module>
       <module
             analysis_module="org.eclipse.tracecompass.analysis.os.linux.core.kernelmemoryusage.KernelMemoryAnalysisModule"
+            icon="icons/memusage.png"
             id="org.eclipse.tracecompass.analysis.os.linux.core.kernelmemory"
             name="%analysis.kernelmemory">
          <tracetype
@@ -65,6 +69,7 @@
       </module>
       <module
             analysis_module="org.eclipse.tracecompass.analysis.os.linux.core.inputoutput.InputOutputAnalysisModule"
+            icon="icons/ioanalysis.png"
             id="org.eclipse.tracecompass.analysis.os.linux.inputoutput"
             name="%analysis.io">
          <tracetype

@@ -26,6 +26,7 @@ import java.util.Set;
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jface.viewers.AbstractTreeViewer;
 import org.eclipse.jface.viewers.ILabelProviderListener;
+import org.eclipse.jface.viewers.ILazyTreeContentProvider;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ITableLabelProvider;
@@ -59,7 +60,6 @@ import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Sash;
@@ -124,7 +124,7 @@ public class TimeGraphCombo extends Composite {
     private boolean fInhibitTreeSelection = false;
 
     /** Number of filler rows used by the tree content provider */
-    private int fNumFillerRows;
+//    private int fNumFillerRows;
 
     /** Calculated item height for Linux workaround */
     private int fLinuxItemHeight = 0;
@@ -287,7 +287,7 @@ public class TimeGraphCombo extends Composite {
      * The TreeContentProviderWrapper is used to insert filler items after the
      * elements of the tree's real content provider.
      */
-    private class TreeContentProviderWrapper implements ITreeContentProvider {
+    private class TreeContentProviderWrapper implements ILazyTreeContentProvider {
         private final ITreeContentProvider contentProvider;
 
         public TreeContentProviderWrapper(ITreeContentProvider contentProvider) {
@@ -305,25 +305,6 @@ public class TimeGraphCombo extends Composite {
         }
 
         @Override
-        public Object[] getElements(Object inputElement) {
-            Object[] elements = contentProvider.getElements(inputElement);
-            // add filler elements to ensure alignment with time analysis viewer
-            Object[] oElements = Arrays.copyOf(elements, elements.length + fNumFillerRows, Object[].class);
-            for (int i = 0; i < fNumFillerRows; i++) {
-                oElements[elements.length + i] = FILLER;
-            }
-            return oElements;
-        }
-
-        @Override
-        public Object[] getChildren(Object parentElement) {
-            if (parentElement instanceof ITimeGraphEntry) {
-                return contentProvider.getChildren(parentElement);
-            }
-            return new Object[0];
-        }
-
-        @Override
         public Object getParent(Object element) {
             if (element instanceof ITimeGraphEntry) {
                 return contentProvider.getParent(element);
@@ -332,11 +313,34 @@ public class TimeGraphCombo extends Composite {
         }
 
         @Override
-        public boolean hasChildren(Object element) {
-            if (element instanceof ITimeGraphEntry) {
-                return contentProvider.hasChildren(element);
+        public void updateElement(Object parent, int index) {
+            if (parent instanceof ITimeGraphEntry) {
+                List<? extends ITimeGraphEntry> children = ((ITimeGraphEntry) parent).getChildren();
+                fTreeViewer.setChildCount(parent, children.size());
+                ITimeGraphEntry entry = children.get(index);
+                if (entry != null) {
+                    fTreeViewer.replace(parent, index, entry);
+                    fTreeViewer.setChildCount(entry, entry.getChildren().size());
+                }
+            } else if (parent instanceof List<?>) {
+                Object object = ((List<?>) parent).get(index);
+                fTreeViewer.replace(parent, index, object);
             }
-            return false;
+        }
+
+        @Override
+        public void updateChildCount(Object element, int currentChildCount) {
+            if (element instanceof ITimeGraphEntry) {
+                List<? extends ITimeGraphEntry> children = ((ITimeGraphEntry) element).getChildren();
+                if (children.size() != currentChildCount) {
+                    fTreeViewer.setChildCount(element, children.size());
+                }
+            } else if (element instanceof List<?>) {
+                int size = ((List<?>) element).size();
+                if (size != currentChildCount) {
+                    fTreeViewer.setChildCount(element, 2);
+                }
+            }
         }
     }
 
@@ -757,7 +761,7 @@ public class TimeGraphCombo extends Composite {
         // The filler rows are required to ensure alignment when the tree does not have a
         // visible horizontal scroll bar. The tree does not allow its top item to be set
         // to a value that would cause blank space to be drawn at the bottom of the tree.
-        fNumFillerRows = Display.getDefault().getBounds().height / getItemHeight(tree, false);
+//        fNumFillerRows = Display.getDefault().getBounds().height / getItemHeight(tree, false);
 
         fSashForm.setWeights(weights);
 

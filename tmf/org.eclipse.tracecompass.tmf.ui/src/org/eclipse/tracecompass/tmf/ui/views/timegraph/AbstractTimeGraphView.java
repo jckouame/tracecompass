@@ -61,9 +61,9 @@ import org.eclipse.jface.commands.ActionHandler;
 import org.eclipse.jface.viewers.AbstractTreeViewer;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ILabelProviderListener;
+import org.eclipse.jface.viewers.ILazyTreeContentProvider;
 import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.jface.viewers.ITableLabelProvider;
-import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.ViewerFilter;
@@ -106,14 +106,14 @@ import org.eclipse.tracecompass.tmf.ui.signal.TmfTimeViewAlignmentInfo;
 import org.eclipse.tracecompass.tmf.ui.views.ITmfTimeAligned;
 import org.eclipse.tracecompass.tmf.ui.views.TmfView;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.ITimeGraphBookmarkListener;
-import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.ITimeGraphContentProvider;
+import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.ITimeGraphLazyTreeContentProvider;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.ITimeGraphPresentationProvider2;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.ITimeGraphRangeListener;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.ITimeGraphSelectionListener;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.ITimeGraphTimeListener;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.TimeGraphBookmarkEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.TimeGraphCombo;
-import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.TimeGraphContentProvider;
+import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.TimeGraphLazyContentProvider;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.TimeGraphPresentationProvider;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.TimeGraphRangeUpdateEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.TimeGraphTimeEvent;
@@ -234,7 +234,7 @@ public abstract class AbstractTimeGraphView extends TmfView implements ITmfTimeA
     private TreeLabelProvider fLabelProvider = null;
 
     /** The time graph content provider */
-    private @NonNull ITimeGraphContentProvider fTimeGraphContentProvider = new TimeGraphContentProvider();
+    private @NonNull ITimeGraphLazyTreeContentProvider fTimeGraphContentProvider = new TimeGraphLazyContentProvider();
 
     /** The relative weight of the sash, ignored if combo is not used */
     private int[] fWeight = { 1, 3 };
@@ -246,7 +246,7 @@ public abstract class AbstractTimeGraphView extends TmfView implements ITmfTimeA
     private boolean fPackDone = false;
 
     /** The filter content provider, or null if filter is not used */
-    private ITreeContentProvider fFilterContentProvider;
+    private ILazyTreeContentProvider fFilterContentProvider;
 
     /** The filter label provider, or null if filter is not used */
     private TreeLabelProvider fFilterLabelProvider;
@@ -293,7 +293,7 @@ public abstract class AbstractTimeGraphView extends TmfView implements ITmfTimeA
 
     private interface ITimeGraphWrapper {
 
-        void setTimeGraphContentProvider(ITimeGraphContentProvider timeGraphContentProvider);
+        void setTimeGraphContentProvider(ITimeGraphLazyTreeContentProvider timeGraphContentProvider);
 
         void setTimeGraphPresentationProvider(TimeGraphPresentationProvider timeGraphPresentationProvider);
 
@@ -329,7 +329,7 @@ public abstract class AbstractTimeGraphView extends TmfView implements ITmfTimeA
 
         void setFilterColumns(String[] columnNames);
 
-        void setFilterContentProvider(ITreeContentProvider contentProvider);
+        void setFilterContentProvider(ILazyTreeContentProvider contentProvider);
 
         void setFilterLabelProvider(ITableLabelProvider labelProvider);
 
@@ -357,7 +357,7 @@ public abstract class AbstractTimeGraphView extends TmfView implements ITmfTimeA
         }
 
         @Override
-        public void setTimeGraphContentProvider(ITimeGraphContentProvider timeGraphContentProvider) {
+        public void setTimeGraphContentProvider(ITimeGraphLazyTreeContentProvider timeGraphContentProvider) {
             viewer.setTimeGraphContentProvider(timeGraphContentProvider);
         }
 
@@ -407,7 +407,7 @@ public abstract class AbstractTimeGraphView extends TmfView implements ITmfTimeA
         }
 
         @Override
-        public void setFilterContentProvider(ITreeContentProvider contentProvider) {
+        public void setFilterContentProvider(ILazyTreeContentProvider contentProvider) {
             viewer.setFilterContentProvider(contentProvider);
         }
 
@@ -500,7 +500,7 @@ public abstract class AbstractTimeGraphView extends TmfView implements ITmfTimeA
         }
 
         @Override
-        public void setTimeGraphContentProvider(ITimeGraphContentProvider timeGraphContentProvider) {
+        public void setTimeGraphContentProvider(ITimeGraphLazyTreeContentProvider timeGraphContentProvider) {
             combo.setTimeGraphContentProvider(timeGraphContentProvider);
         }
 
@@ -550,7 +550,7 @@ public abstract class AbstractTimeGraphView extends TmfView implements ITmfTimeA
         }
 
         @Override
-        public void setFilterContentProvider(ITreeContentProvider contentProvider) {
+        public void setFilterContentProvider(ILazyTreeContentProvider contentProvider) {
             combo.setFilterContentProvider(contentProvider);
         }
 
@@ -990,9 +990,9 @@ public abstract class AbstractTimeGraphView extends TmfView implements ITmfTimeA
      *
      * @param tgcp
      *            The time graph content provider
-     * @since 1.0
+     * @since 3.0
      */
-    protected void setTimeGraphContentProvider(final @NonNull ITimeGraphContentProvider tgcp) {
+    protected void setTimeGraphContentProvider(final @NonNull ITimeGraphLazyTreeContentProvider tgcp) {
         checkPartNotCreated();
         fTimeGraphContentProvider = tgcp;
     }
@@ -1030,9 +1030,9 @@ public abstract class AbstractTimeGraphView extends TmfView implements ITmfTimeA
      *
      * @param contentProvider
      *            The filter content provider
-     * @since 1.2
+     * @since 3.0
      */
-    protected void setFilterContentProvider(final ITreeContentProvider contentProvider) {
+    protected void setFilterContentProvider(final ILazyTreeContentProvider contentProvider) {
         checkPartNotCreated();
         fFilterContentProvider = contentProvider;
     }

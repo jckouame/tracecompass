@@ -34,9 +34,9 @@ import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.AbstractTreeViewer;
+import org.eclipse.jface.viewers.ILazyTreeContentProvider;
 import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.jface.viewers.ITableLabelProvider;
-import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
@@ -136,7 +136,7 @@ public class TimeGraphViewer implements ITimeDataProvider, IMarkerAxisListener, 
     private Slider fVerticalScrollBar;
     private @NonNull TimeGraphColorScheme fColorScheme = new TimeGraphColorScheme();
     private Object fInputElement;
-    private ITimeGraphContentProvider fTimeGraphContentProvider;
+    private ITimeGraphLazyTreeContentProvider fTimeGraphContentProvider;
     private ITimeGraphPresentationProvider fTimeGraphProvider;
     private @NonNull ITimeDataProvider fTimeDataProvider = this;
     private TimeGraphTooltipHandler fToolTipHandler;
@@ -281,7 +281,7 @@ public class TimeGraphViewer implements ITimeDataProvider, IMarkerAxisListener, 
      */
     public TimeGraphViewer(Composite parent, int style) {
         createDataViewer(parent, style);
-        fTimeGraphContentProvider = new TimeGraphContentProvider();
+        fTimeGraphContentProvider = new TimeGraphLazyContentProvider();
     }
 
     /**
@@ -289,8 +289,9 @@ public class TimeGraphViewer implements ITimeDataProvider, IMarkerAxisListener, 
      *
      * @param timeGraphContentProvider
      *            the timegraph content provider
+     * @since 3.0
      */
-    public void setTimeGraphContentProvider(ITimeGraphContentProvider timeGraphContentProvider) {
+    public void setTimeGraphContentProvider(ITimeGraphLazyTreeContentProvider timeGraphContentProvider) {
         fTimeGraphContentProvider = timeGraphContentProvider;
     }
 
@@ -298,8 +299,9 @@ public class TimeGraphViewer implements ITimeDataProvider, IMarkerAxisListener, 
      * Gets the timegraph content provider used by this timegraph viewer.
      *
      * @return the timegraph content provider
+     * @since 3.0
      */
-    public ITimeGraphContentProvider getTimeGraphContentProvider() {
+    public ITimeGraphLazyTreeContentProvider getTimeGraphContentProvider() {
         return fTimeGraphContentProvider;
     }
 
@@ -330,9 +332,9 @@ public class TimeGraphViewer implements ITimeDataProvider, IMarkerAxisListener, 
      * Sets the tree content provider used by the filter dialog
      *
      * @param contentProvider the tree content provider
-     * @since 1.2
+     * @since 3.0
      */
-    public void setFilterContentProvider(ITreeContentProvider contentProvider) {
+    public void setFilterContentProvider(ILazyTreeContentProvider contentProvider) {
         getShowFilterDialogAction().getFilterDialog().setContentProvider(contentProvider);
     }
 

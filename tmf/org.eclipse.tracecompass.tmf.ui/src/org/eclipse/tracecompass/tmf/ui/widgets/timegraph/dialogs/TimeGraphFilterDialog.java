@@ -31,6 +31,7 @@ import org.eclipse.jface.viewers.CheckStateChangedEvent;
 import org.eclipse.jface.viewers.CheckboxTreeViewer;
 import org.eclipse.jface.viewers.IBaseLabelProvider;
 import org.eclipse.jface.viewers.ICheckStateListener;
+import org.eclipse.jface.viewers.ILazyTreeContentProvider;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.jface.viewers.ViewerComparator;
@@ -80,7 +81,7 @@ public class TimeGraphFilterDialog extends SelectionStatusDialog {
     private ITimeGraphEntryActiveProvider fCheckActiveProvider;
     private ITimeGraphEntryActiveProvider fUncheckInactiveProvider;
 
-    private ITreeContentProvider fContentProvider;
+    private ILazyTreeContentProvider fContentProvider;
 
     private String[] fColumnNames;
 
@@ -214,8 +215,9 @@ public class TimeGraphFilterDialog extends SelectionStatusDialog {
     /**
      * @param contentProvider
      *            The content provider for the table
+     * @since 3.0
      */
-    public void setContentProvider(ITreeContentProvider contentProvider) {
+    public void setContentProvider(ILazyTreeContentProvider contentProvider) {
         fContentProvider = contentProvider;
     }
 
